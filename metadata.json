@@ -1,0 +1,10 @@
+{
+  "name": "PetroKnow",
+  "description": "AI-Powered Manufacturing Knowledge Hub for petrochemical plant operations, unifying SOPs, tacit expert knowledge, and physical equipment.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
