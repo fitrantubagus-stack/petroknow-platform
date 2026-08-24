@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { Role } from '../../types';
 import { INITIAL_USERS } from '../../data/initialData';
@@ -67,7 +68,8 @@ export const Navbar: React.FC = () => {
     <header className="sticky top-0 z-40 h-16 w-full bg-slate-900/95 backdrop-blur-md border-b border-slate-800 text-slate-100 flex items-center justify-between px-4 sm:px-6">
       {/* Brand & Landing Toggle */}
       <div className="flex items-center gap-4">
-        <div 
+        <Link 
+          to="/"
           onClick={() => setCurrentView('landing')}
           className="cursor-pointer flex items-center gap-3 group"
         >
@@ -94,17 +96,18 @@ export const Navbar: React.FC = () => {
           <div className="hidden lg:flex items-center gap-2 pl-3 border-l border-slate-800">
             <ChandraAsriLogo size={22} showWordmark={true} />
           </div>
-        </div>
+        </Link>
 
         {/* Public Landing Shortcut if inside app */}
         {currentView !== 'landing' && (
-          <button
+          <Link
+            to="/"
             onClick={() => setCurrentView('landing')}
             className="hidden md:flex items-center gap-1 text-xs text-slate-400 hover:text-slate-200 px-2 py-1 rounded-md hover:bg-slate-800/60 transition-colors"
           >
             <Compass className="w-3.5 h-3.5 text-teal-400" />
             <span>Public Overview</span>
-          </button>
+          </Link>
         )}
       </div>
 

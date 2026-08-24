@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { useApp, AppView } from '../../context/AppContext';
 import { 
   LayoutDashboard, Bot, Map, QrCode, Lightbulb, 
@@ -27,7 +27,6 @@ export const Sidebar: React.FC = () => {
     role, stats, setActiveModal 
   } = useApp();
   
-  const navigate = useNavigate();
   const location = useLocation();
 
   const navItems: {
@@ -126,17 +125,6 @@ export const Sidebar: React.FC = () => {
     return true;
   };
 
-  const handleNavClick = (item: typeof navItems[0]) => {
-    const isAllowed = hasRoleAccess(item.minRole);
-    if (isAllowed) {
-      setCurrentView(item.id);
-      navigate(item.path);
-    } else {
-      // Prompt role switch
-      setActiveModal('login_role');
-    }
-  };
-
   return (
     <aside 
       className={`h-[calc(100vh-4rem)] bg-slate-900 border-r border-slate-800 transition-all duration-300 flex flex-col justify-between select-none z-30 shrink-0 ${
@@ -146,42 +134,60 @@ export const Sidebar: React.FC = () => {
       {/* Top Section / Nav list */}
       <div className="p-3 space-y-1 overflow-y-auto">
         {navItems.map((item) => {
-          const isActive = currentView === item.id || location.pathname === item.path;
           const isAllowed = hasRoleAccess(item.minRole);
+          const isCurrent = currentView === item.id || location.pathname === item.path;
 
           return (
             <div key={item.id} className="relative group">
-              <button
-                onClick={() => handleNavClick(item)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150 ${
-                  isActive
-                    ? 'bg-gradient-to-r from-teal-500/20 to-teal-500/5 text-teal-300 border border-teal-500/40 shadow-sm shadow-teal-500/10'
-                    : isAllowed
-                    ? 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/70 border border-transparent'
-                    : 'text-slate-600 hover:text-slate-400 hover:bg-slate-800/30 border border-transparent opacity-70'
-                }`}
+              <NavLink
+                to={item.path}
+                onClick={(e) => {
+                  if (!isAllowed) {
+                    e.preventDefault();
+                    setActiveModal('login_role');
+                  } else {
+                    setCurrentView(item.id);
+                  }
+                }}
+                className={({ isActive }) => {
+                  const active = isActive || isCurrent;
+                  return `w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150 ${
+                    active
+                      ? 'bg-gradient-to-r from-teal-500/20 to-teal-500/5 text-teal-300 border border-teal-500/40 shadow-sm shadow-teal-500/10'
+                      : isAllowed
+                      ? 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/70 border border-transparent'
+                      : 'text-slate-600 hover:text-slate-400 hover:bg-slate-800/30 border border-transparent opacity-70'
+                  }`;
+                }}
                 title={sidebarCollapsed ? item.label : undefined}
               >
-                <div className={`shrink-0 ${isActive ? 'text-teal-400' : isAllowed ? 'text-slate-400 group-hover:text-slate-200' : 'text-slate-600'}`}>
-                  {item.icon}
-                </div>
+                {({ isActive }) => {
+                  const active = isActive || isCurrent;
+                  return (
+                    <>
+                      <div className={`shrink-0 ${active ? 'text-teal-400' : isAllowed ? 'text-slate-400 group-hover:text-slate-200' : 'text-slate-600'}`}>
+                        {item.icon}
+                      </div>
 
-                {!sidebarCollapsed && (
-                  <div className="flex-1 flex items-center justify-between text-left overflow-hidden">
-                    <span className="truncate">{item.label}</span>
-                    <div className="flex items-center gap-1.5 shrink-0 ml-2">
-                      {!isAllowed && (
-                        <Lock className="w-3.5 h-3.5 text-slate-600" title={`Requires ${item.requiresRoleName}`} />
+                      {!sidebarCollapsed && (
+                        <div className="flex-1 flex items-center justify-between text-left overflow-hidden">
+                          <span className="truncate">{item.label}</span>
+                          <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                            {!isAllowed && (
+                              <Lock className="w-3.5 h-3.5 text-slate-600" title={`Requires ${item.requiresRoleName}`} />
+                            )}
+                            {item.badge !== undefined && (
+                              <span className={`text-[10px] font-mono font-bold px-1.5 py-0.2 rounded-full border ${item.badgeColor || 'bg-slate-800 text-slate-300 border-slate-700'}`}>
+                                {item.badge}
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       )}
-                      {item.badge !== undefined && (
-                        <span className={`text-[10px] font-mono font-bold px-1.5 py-0.2 rounded-full border ${item.badgeColor || 'bg-slate-800 text-slate-300 border-slate-700'}`}>
-                          {item.badge}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </button>
+                    </>
+                  );
+                }}
+              </NavLink>
 
               {/* Floating Tooltip when Collapsed */}
               {sidebarCollapsed && (
