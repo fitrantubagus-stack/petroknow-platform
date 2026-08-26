@@ -9,6 +9,7 @@ import {
 
 export const VIEW_TO_PATH: Record<AppView, string> = {
   landing: '/',
+  contact: '/contact',
   dashboard: '/mission-control',
   assistant: '/ai-assistant',
   map: '/digital-twin-map',

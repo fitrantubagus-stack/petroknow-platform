@@ -23,7 +23,8 @@ export type AppView =
   | 'library' 
   | 'freshness' 
   | 'analytics'
-  | 'campaigns';
+  | 'campaigns'
+  | 'contact';
 
 export type ActiveModal = 
   | 'about_devs' 

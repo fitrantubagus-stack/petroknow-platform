@@ -16,6 +16,7 @@ import { VerificationQueueView } from './components/verification/VerificationQue
 import { DocumentLibraryView } from './components/library/DocumentLibraryView';
 import { FreshnessManagerView } from './components/freshness/FreshnessManagerView';
 import { AnalyticsView } from './components/analytics/AnalyticsView';
+import { ContactView } from './components/contact/ContactView';
 
 // Modals
 import { AboutDevsModal } from './components/modals/AboutDevsModal';
@@ -27,6 +28,7 @@ import { DocDetailModal } from './components/modals/DocDetailModal';
 
 const PATH_TO_VIEW_MAP: Record<string, AppView> = {
   '/': 'landing',
+  '/contact': 'contact',
   '/mission-control': 'dashboard',
   '/ai-assistant': 'assistant',
   '/digital-twin-map': 'map',
@@ -41,6 +43,7 @@ const PATH_TO_VIEW_MAP: Record<string, AppView> = {
 
 const VIEW_TO_PATH_MAP: Record<AppView, string> = {
   landing: '/',
+  contact: '/contact',
   dashboard: '/mission-control',
   assistant: '/ai-assistant',
   map: '/digital-twin-map',
@@ -97,6 +100,7 @@ const MainAppContent: React.FC = () => {
       <Routes>
         {/* Landing Page (Public View) */}
         <Route path="/" element={<LandingPage />} />
+        <Route path="/contact" element={<ContactView />} />
 
         {/* Authenticated Workspace Pages */}
         <Route 

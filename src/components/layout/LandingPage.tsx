@@ -7,7 +7,7 @@ import {
   Cpu, ArrowRight, ShieldCheck, QrCode, Sparkles, 
   Clock, Map, Layers, CheckCircle2, ChevronDown, 
   HelpCircle, Users, Activity, FileText, Barcode, 
-  Check, Lock, ExternalLink, Flame 
+  Check, Lock, ExternalLink, Flame, Mail 
 } from 'lucide-react';
 
 export const LandingPage: React.FC = () => {
@@ -575,6 +575,13 @@ export const LandingPage: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-6">
+            <Link
+              to="/contact"
+              className="text-slate-400 hover:text-teal-300 font-semibold transition-colors flex items-center gap-1.5"
+            >
+              <Mail className="w-3.5 h-3.5" />
+              <span>Contact</span>
+            </Link>
             <button
               onClick={() => setActiveModal('about_devs')}
               className="text-teal-400 hover:text-teal-300 font-semibold transition-colors flex items-center gap-1.5"
