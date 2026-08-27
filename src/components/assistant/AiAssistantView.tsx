@@ -307,15 +307,15 @@ export const AiAssistantView: React.FC = () => {
         </div>
       )}
       {/* Header */}
-      <div className="px-4 sm:px-6 py-3.5 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-teal-500/10 border border-teal-500/30 text-teal-400">
+      <div className="px-4 sm:px-6 py-3.5 bg-slate-900/90 border-b border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="flex items-start sm:items-center gap-3">
+          <div className="p-2 rounded-xl bg-teal-500/10 border border-teal-500/30 text-teal-400 shrink-0 mt-0.5 sm:mt-0">
             <Bot className="w-5 h-5" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <h2 className="text-sm font-bold text-slate-100">AI Knowledge Assistant</h2>
-              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 shrink-0">
                 Deterministic Search Grounded
               </span>
             </div>
@@ -328,7 +328,7 @@ export const AiAssistantView: React.FC = () => {
         {/* Quick Photo Ask Button */}
         <button
           onClick={() => setPhotoModalOpen(true)}
-          className="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-teal-300 border border-teal-500/30 text-xs font-semibold flex items-center gap-1.5 transition-colors"
+          className="w-full sm:w-auto justify-center px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-teal-300 border border-teal-500/30 text-xs font-semibold flex items-center gap-1.5 transition-colors shrink-0"
         >
           <Camera className="w-3.5 h-3.5 text-teal-400" />
           <span>Ask by Photo / Gauge</span>

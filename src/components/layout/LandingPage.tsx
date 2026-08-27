@@ -568,13 +568,15 @@ export const LandingPage: React.FC = () => {
       {/* Clean Footer */}
       <footer className="py-8 border-t border-slate-800/80 bg-slate-950 text-xs text-slate-400">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <Cpu className="w-4 h-4 text-teal-400" />
-            <span className="font-bold text-slate-200">PetroKnow</span>
-            <span>— AI-Powered Manufacturing Knowledge Hub</span>
+          <div className="flex flex-col sm:flex-row items-center sm:items-center gap-1 sm:gap-2 text-center sm:text-left">
+            <div className="flex items-center gap-1.5">
+              <Cpu className="w-4 h-4 text-teal-400 shrink-0" />
+              <span className="font-bold text-slate-200">PetroKnow</span>
+            </div>
+            <span className="text-slate-400">— AI-Powered Manufacturing Knowledge Hub</span>
           </div>
 
-          <div className="flex items-center gap-6">
+          <div className="flex flex-wrap items-center justify-center gap-x-4 sm:gap-x-6 gap-y-2">
             <Link
               to="/contact"
               className="text-slate-400 hover:text-teal-300 font-semibold transition-colors flex items-center gap-1.5"

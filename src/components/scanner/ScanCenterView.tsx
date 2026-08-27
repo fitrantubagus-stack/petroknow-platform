@@ -197,10 +197,10 @@ export const ScanCenterView: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-slate-900 border border-slate-800 w-fit">
+      <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-slate-900 border border-slate-800 w-full sm:w-fit overflow-x-auto max-w-full">
         <button
           onClick={() => { setActiveTab('qr'); setScanStatus(null); }}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap shrink-0 ${
             activeTab === 'qr'
               ? 'bg-teal-500 text-slate-950 shadow-md shadow-teal-500/20'
               : 'text-slate-400 hover:text-slate-200'
@@ -212,7 +212,7 @@ export const ScanCenterView: React.FC = () => {
 
         <button
           onClick={() => { setActiveTab('barcode'); setScanStatus(null); }}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap shrink-0 ${
             activeTab === 'barcode'
               ? 'bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20'
               : 'text-slate-400 hover:text-slate-200'
@@ -224,7 +224,7 @@ export const ScanCenterView: React.FC = () => {
 
         <button
           onClick={() => { setActiveTab('ocr'); setScanStatus(null); }}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap shrink-0 ${
             activeTab === 'ocr'
               ? 'bg-indigo-500 text-white shadow-md shadow-indigo-500/20'
               : 'text-slate-400 hover:text-slate-200'

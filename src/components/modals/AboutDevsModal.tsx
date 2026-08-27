@@ -142,7 +142,7 @@ export const AboutDevsModal: React.FC = () => {
                   <p className="text-xs text-slate-300 leading-relaxed max-w-2xl">
                     {selectedDev.shortDescription}
                   </p>
-                  <div className="pt-1 flex items-center justify-center sm:justify-start gap-4 text-xs text-slate-400">
+                  <div className="pt-1 flex flex-col sm:flex-row items-center sm:items-center justify-center sm:justify-start gap-1.5 sm:gap-4 text-center sm:text-left text-xs text-slate-400">
                     <span className="flex items-center gap-1.5 font-mono">
                       <Hash className="w-3.5 h-3.5 text-teal-400" />
                       NIM: {selectedDev.nim}
