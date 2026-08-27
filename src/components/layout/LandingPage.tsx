@@ -7,11 +7,11 @@ import {
   Cpu, ArrowRight, ShieldCheck, QrCode, Sparkles, 
   Clock, Map, Layers, CheckCircle2, ChevronDown, 
   HelpCircle, Users, Activity, FileText, Barcode, 
-  Check, Lock, ExternalLink, Flame, Mail 
+  Check, Lock, ExternalLink, Flame, Mail, Download 
 } from 'lucide-react';
 
 export const LandingPage: React.FC = () => {
-  const { setCurrentView, setActiveModal } = useApp();
+  const { setCurrentView, setActiveModal, canInstallPwa, installPwa } = useApp();
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   const toggleFaq = (index: number) => {
@@ -136,7 +136,7 @@ export const LandingPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 selection:bg-teal-500 selection:text-slate-950 font-sans overflow-x-hidden">
       {/* Top Navigation */}
-      <nav className="sticky top-0 z-50 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 overflow-x-hidden">
+      <nav className="sticky top-0 z-50 bg-slate-900/90 backdrop-blur-md border-b border-slate-800">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-18 flex items-center justify-between min-w-0">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 sm:gap-3 group min-w-0">
@@ -190,6 +190,17 @@ export const LandingPage: React.FC = () => {
 
           {/* CTA Buttons */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            {canInstallPwa && (
+              <button
+                onClick={installPwa}
+                title="Install PetroKnow as standalone PWA app"
+                className="px-3 sm:px-3.5 py-2 rounded-full bg-slate-800 hover:bg-slate-700 text-teal-300 border border-teal-500/40 font-bold text-xs flex items-center gap-1.5 transition-all shadow-md shrink-0 animate-fade-in"
+              >
+                <Download className="w-3.5 h-3.5 text-teal-400" />
+                <span className="hidden sm:inline">Install App</span>
+              </button>
+            )}
+
             <Link
               to="/login"
               onClick={(e) => {
@@ -249,6 +260,15 @@ export const LandingPage: React.FC = () => {
                   <span>Launch Live Mission Control</span>
                   <ArrowRight className="w-4 h-4" />
                 </Link>
+                {canInstallPwa && (
+                  <button
+                    onClick={installPwa}
+                    className="px-5 py-3.5 rounded-xl bg-teal-500/10 hover:bg-teal-500/20 text-teal-300 border border-teal-500/40 text-sm font-semibold transition-colors flex items-center gap-2"
+                  >
+                    <Download className="w-4 h-4 text-teal-400" />
+                    <span>Install Offline App</span>
+                  </button>
+                )}
                 <button
                   onClick={() => { setActiveModal('login_role'); }}
                   className="px-5 py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 text-sm font-semibold transition-colors flex items-center gap-2"

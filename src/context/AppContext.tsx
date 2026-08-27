@@ -130,6 +130,11 @@ interface AppContextType {
 
   // Real-time computed plant stats
   stats: PlantStats;
+
+  // PWA Install & Network status
+  canInstallPwa: boolean;
+  installPwa: () => Promise<void>;
+  isOffline: boolean;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -227,6 +232,53 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [knowledgeEntries, equipmentList, spareParts, documents, knowledgeGaps, activityFeed, topQueries, campaigns]);
 
   const currentUser = useMemo(() => INITIAL_USERS[role] || INITIAL_USERS.operator, [role]);
+
+  // PWA Install Prompt & Offline Detection
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [canInstallPwa, setCanInstallPwa] = useState<boolean>(false);
+  const [isOffline, setIsOffline] = useState<boolean>(typeof navigator !== 'undefined' ? !navigator.onLine : false);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setCanInstallPwa(true);
+    };
+
+    const handleAppInstalled = () => {
+      setDeferredPrompt(null);
+      setCanInstallPwa(false);
+    };
+
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  const installPwa = async () => {
+    if (!deferredPrompt) return;
+    try {
+      await deferredPrompt.prompt();
+      const choice = await deferredPrompt.userChoice;
+      if (choice && choice.outcome === 'accepted') {
+        setCanInstallPwa(false);
+      }
+      setDeferredPrompt(null);
+    } catch (err) {
+      console.error('PWA install prompt error:', err);
+    }
+  };
 
   const toggleSidebar = () => {
     setSidebarCollapsed(prev => {
@@ -890,7 +942,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         deleteCampaign,
         computeCampaignProgress,
         resetToInitialData,
-        stats
+        stats,
+        canInstallPwa,
+        installPwa,
+        isOffline
       }}
     >
       {children}

@@ -5,13 +5,14 @@ import { decodeBarcodeOrQrFromFile } from '../../utils/barcodeUtils';
 import { 
   Bot, Send, Image, ThumbsUp, ThumbsDown, Sparkles, 
   CheckCircle2, AlertTriangle, HelpCircle, ArrowUpRight, 
-  RotateCcw, Camera, Flame, Gauge, X, ShieldAlert 
+  RotateCcw, Camera, Flame, Gauge, X, ShieldAlert, WifiOff 
 } from 'lucide-react';
 
 export const AiAssistantView: React.FC = () => {
   const { 
     chatMessages, sendChatMessage, rateChatAnswer, logKnowledgeGap, 
-    openKnowledge, knowledgeEntries, equipmentList, spareParts 
+    openKnowledge, knowledgeEntries, equipmentList, spareParts,
+    isOffline
   } = useApp();
 
   const [inputQuery, setInputQuery] = useState('');
@@ -19,6 +20,7 @@ export const AiAssistantView: React.FC = () => {
   const [photoModalOpen, setPhotoModalOpen] = useState(false);
   const [photoLoading, setPhotoLoading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [offlineToast, setOfflineToast] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   // Auto scroll to bottom
@@ -318,6 +320,12 @@ export const AiAssistantView: React.FC = () => {
               <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 shrink-0">
                 Deterministic Search Grounded
               </span>
+              {isOffline && (
+                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30 flex items-center gap-1 shrink-0">
+                  <WifiOff className="w-3 h-3" />
+                  <span>Offline Mode</span>
+                </span>
+              )}
             </div>
             <p className="text-[11px] text-slate-400">
               Retrieves exact verified SOPs and expert tacit wisdom with clickable source traceability.
@@ -334,6 +342,16 @@ export const AiAssistantView: React.FC = () => {
           <span>Ask by Photo / Gauge</span>
         </button>
       </div>
+
+      {/* Offline Alert Banner */}
+      {isOffline && (
+        <div className="mx-4 sm:mx-6 mt-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-2.5 text-amber-300 text-xs">
+          <div className="flex items-center gap-2">
+            <WifiOff className="w-4 h-4 text-amber-400 shrink-0" />
+            <span>You're offline — standard procedure search and knowledge base are available from cache. Cloud AI generative lookups require an active internet connection.</span>
+          </div>
+        </div>
+      )}
 
       {/* Messages Scroll Area */}
       <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
