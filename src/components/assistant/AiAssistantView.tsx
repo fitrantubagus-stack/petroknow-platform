@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { ChatMessage } from '../../types';
+import { decodeBarcodeOrQrFromFile } from '../../utils/barcodeUtils';
 import { 
   Bot, Send, Image, ThumbsUp, ThumbsDown, Sparkles, 
   CheckCircle2, AlertTriangle, HelpCircle, ArrowUpRight, 
@@ -10,13 +11,14 @@ import {
 export const AiAssistantView: React.FC = () => {
   const { 
     chatMessages, sendChatMessage, rateChatAnswer, logKnowledgeGap, 
-    openKnowledge, knowledgeEntries 
+    openKnowledge, knowledgeEntries, equipmentList, spareParts 
   } = useApp();
 
   const [inputQuery, setInputQuery] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [photoModalOpen, setPhotoModalOpen] = useState(false);
   const [photoLoading, setPhotoLoading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   // Auto scroll to bottom
@@ -91,30 +93,219 @@ export const AiAssistantView: React.FC = () => {
     setIsProcessing(false);
   };
 
-  const handleCustomFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const processUploadedPhotoFile = async (file: File) => {
     setPhotoModalOpen(false);
     setIsProcessing(true);
 
-    const reader = new FileReader();
-    reader.onload = async (ev) => {
-      const url = ev.target?.result as string;
-      await new Promise(res => setTimeout(res, 800));
-      // Extract filename / realistic label
+    try {
+      // 1. Attempt genuine barcode/QR decoding
+      const decoded = await decodeBarcodeOrQrFromFile(file);
+
+      // Read file to data URL for chat image preview
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (ev) => resolve(ev.target?.result as string || '');
+        reader.onerror = (err) => reject(err);
+        reader.readAsDataURL(file);
+      });
+
+      if (decoded && decoded.code) {
+        const cleanCode = decoded.code.trim();
+        const upperCode = cleanCode.toUpperCase();
+
+        // Check if matches real equipment ID or code
+        const matchedEq = equipmentList.find(eq => 
+          eq.id.toUpperCase() === upperCode || 
+          eq.code.toUpperCase() === upperCode ||
+          eq.code.replace('EQ-', '').toUpperCase() === upperCode
+        );
+
+        // Check if matches real spare part
+        const matchedPart = spareParts.find(p => 
+          p.partNumber.toUpperCase() === upperCode || 
+          p.id.toUpperCase() === upperCode
+        );
+
+        if (matchedEq) {
+          // Found real equipment
+          const linkedKbs = knowledgeEntries.filter(k => 
+            matchedEq.linkedKnowledgeIds.includes(k.id) || 
+            k.linkedEquipmentIds.includes(matchedEq.id)
+          );
+          const linkedPartItems = spareParts.filter(p => 
+            matchedEq.linkedPartNumbers.includes(p.partNumber) || 
+            p.compatibleEquipmentIds.includes(matchedEq.id)
+          );
+
+          let responseText = `**Scanned Equipment Identified: ${matchedEq.name} (${matchedEq.code})**\n\n`;
+          responseText += `• **Plant Area:** ${matchedEq.area}\n`;
+          responseText += `• **Category:** ${matchedEq.category}\n`;
+          responseText += `• **Operating Telemetry:** Temp: ${matchedEq.temp} | Pressure: ${matchedEq.pressure} | Flow Rate: ${matchedEq.flowRate}\n`;
+          responseText += `• **Status:** ${matchedEq.status.toUpperCase()} (Last inspected: ${matchedEq.lastInspected})\n`;
+          responseText += `• **Description:** ${matchedEq.description}\n\n`;
+
+          responseText += `**Linked Standard Procedures & Tacit Wisdom:**\n`;
+          if (linkedKbs.length > 0) {
+            responseText += linkedKbs.map(k => `• [${k.id}] **${k.title}** (${k.category} — ${k.status.toUpperCase()})`).join('\n') + '\n\n';
+          } else {
+            responseText += `• No specific procedures currently linked to this tag.\n\n`;
+          }
+
+          responseText += `**Associated Spare Parts:**\n`;
+          if (linkedPartItems.length > 0) {
+            responseText += linkedPartItems.map(p => `• [${p.partNumber}] ${p.name} — Stock: **${p.currentStock} ${p.unit}** (Min: ${p.minThreshold})`).join('\n');
+          } else {
+            responseText += `• No spare parts listed for this unit.`;
+          }
+
+          await sendChatMessage(`[Uploaded Photo: Scanned ${decoded.type} "${cleanCode}"]`, {
+            url: dataUrl,
+            label: `${decoded.type} Code: ${matchedEq.code} (${matchedEq.name})`
+          }, {
+            text: responseText,
+            confidenceStatus: 'verified',
+            matchScore: 100,
+            sources: linkedKbs.slice(0, 3).map(k => ({
+              id: k.id,
+              title: k.title,
+              snippet: k.situation || k.content.slice(0, 180),
+              category: k.category,
+              status: k.status,
+              docNumber: k.sourceDocId
+            }))
+          });
+          return;
+        }
+
+        if (matchedPart) {
+          // Found real spare part
+          const compatEqs = equipmentList.filter(eq => matchedPart.compatibleEquipmentIds.includes(eq.id));
+          const relevantKbs = knowledgeEntries.filter(k => 
+            k.linkedPartNumbers.includes(matchedPart.partNumber) || 
+            matchedPart.compatibleEquipmentIds.some(eid => k.linkedEquipmentIds.includes(eid))
+          );
+
+          let responseText = `**Scanned Spare Part Identified: ${matchedPart.name} (${matchedPart.partNumber})**\n\n`;
+          responseText += `• **Category:** ${matchedPart.category}\n`;
+          responseText += `• **Stock Status:** **${matchedPart.currentStock} ${matchedPart.unit}** available (Min: ${matchedPart.minThreshold} ${matchedPart.unit}) ${matchedPart.currentStock <= matchedPart.minThreshold ? '⚠️ **[LOW STOCK ALERT]**' : '✅ [ADEQUATE STOCK]'}\n`;
+          responseText += `• **Warehouse Location:** ${matchedPart.binLocation}\n`;
+          responseText += `• **Unit Cost & Lead Time:** $${matchedPart.costUsd.toLocaleString()} USD | ${matchedPart.leadTimeDays} days lead time (Last restocked: ${matchedPart.lastRestocked})\n`;
+          responseText += `• **Technical Specifications:** ${matchedPart.specifications}\n\n`;
+
+          responseText += `**Compatible Plant Equipment:**\n`;
+          if (compatEqs.length > 0) {
+            responseText += compatEqs.map(eq => `• [${eq.code}] ${eq.name} (${eq.area})`).join('\n') + '\n\n';
+          } else {
+            responseText += `• Universal plant specification.\n\n`;
+          }
+
+          if (relevantKbs.length > 0) {
+            responseText += `**Associated Operating Procedures:**\n` + relevantKbs.map(k => `• [${k.id}] **${k.title}** (${k.category})`).join('\n');
+          }
+
+          await sendChatMessage(`[Uploaded Photo: Scanned ${decoded.type} "${cleanCode}"]`, {
+            url: dataUrl,
+            label: `${decoded.type} Code: ${matchedPart.partNumber} (${matchedPart.name})`
+          }, {
+            text: responseText,
+            confidenceStatus: 'verified',
+            matchScore: 100,
+            sources: relevantKbs.slice(0, 3).map(k => ({
+              id: k.id,
+              title: k.title,
+              snippet: k.situation || k.content.slice(0, 180),
+              category: k.category,
+              status: k.status,
+              docNumber: k.sourceDocId
+            }))
+          });
+          return;
+        }
+
+        // Code decoded successfully but not registered in system
+        await sendChatMessage(`[Uploaded Photo: Scanned ${decoded.type} "${cleanCode}"]`, {
+          url: dataUrl,
+          label: `${decoded.type} Code: ${cleanCode}`
+        }, {
+          text: `I was able to read a ${decoded.type} code in this image ("${cleanCode}"), but it doesn't match any equipment or spare part on file in the PetroKnow system.`
+        });
+        return;
+      }
+
+      // No scannable QR/barcode detected in image -> Fallback to existing mock behavior
+      await new Promise(res => setTimeout(res, 400));
       const label = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
       await sendChatMessage(`[Analyzed Uploaded Image: ${file.name}]`, {
-        url,
+        url: dataUrl,
         label: `Operational analysis of ${label}`
       });
+    } catch (err) {
+      console.error('Error analyzing image upload:', err);
+    } finally {
       setIsProcessing(false);
-    };
-    reader.readAsDataURL(file);
+    }
+  };
+
+  const handleCustomFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      processUploadedPhotoFile(file);
+      // Reset input value so same file can be selected again if desired
+      e.target.value = '';
+    }
+  };
+
+  // Clipboard paste handler for screenshots
+  const handlePaste = (e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.startsWith('image/')) {
+        const file = items[i].getAsFile();
+        if (file) {
+          processUploadedPhotoFile(file);
+          break;
+        }
+      }
+    }
+  };
+
+  // Drag and drop handlers
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      processUploadedPhotoFile(file);
+    }
   };
 
   return (
-    <div className="h-[calc(100vh-4rem)] flex flex-col bg-slate-950 text-slate-100 max-w-6xl mx-auto animate-fade-in">
+    <div 
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      className={`h-full flex flex-col bg-slate-950 text-slate-100 max-w-6xl mx-auto animate-fade-in relative ${
+        isDragging ? 'ring-2 ring-teal-500/80' : ''
+      }`}
+    >
+      {isDragging && (
+        <div className="absolute inset-0 z-40 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center border-2 border-dashed border-teal-400 rounded-2xl m-3 pointer-events-none">
+          <div className="text-center space-y-2">
+            <Camera className="w-10 h-10 text-teal-400 mx-auto animate-bounce" />
+            <p className="text-sm font-bold text-teal-300">Drop Plant Photo or QR/Barcode Image to Analyze</p>
+          </div>
+        </div>
+      )}
       {/* Header */}
       <div className="px-4 sm:px-6 py-3.5 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -336,6 +527,7 @@ export const AiAssistantView: React.FC = () => {
             type="text"
             value={inputQuery}
             onChange={(e) => setInputQuery(e.target.value)}
+            onPaste={handlePaste}
             placeholder="Type your operational question (e.g. 'How to handle high delta P on demethanizer', 'EQ-CMP-204 lube filter change')..."
             className="flex-1 bg-slate-950 border border-slate-700/80 rounded-xl px-4 py-3 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500/50 transition-all font-sans"
           />

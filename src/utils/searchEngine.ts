@@ -8,6 +8,82 @@ export interface SearchMatchResult {
   confidenceStatus: 'verified' | 'pending' | 'unverified';
 }
 
+export interface SystemIntentResult {
+  type: 'greeting' | 'self_explanation';
+  response: string;
+}
+
+/**
+ * Lightweight heuristic intent-detection for greetings and self-explanation / meta questions
+ */
+export function detectAssistantIntent(query: string): SystemIntentResult | null {
+  if (!query || typeof query !== 'string') return null;
+  const raw = query.trim().toLowerCase();
+  if (!raw) return null;
+
+  // Clean common punctuation
+  const cleaned = raw.replace(/[.,?!:;'"()\[\]{}~@#$%^&*_\-+=<>/\\]/g, ' ').replace(/\s+/g, ' ').trim();
+  if (!cleaned) return null;
+
+  // 1. Check for standalone greetings
+  const greetingPhrases = new Set([
+    'hi', 'hello', 'hey', 'halo', 'helo', 'howdy', 'hola', 'yo',
+    'good morning', 'good afternoon', 'good evening', 'good day', 'greetings',
+    'hi there', 'hello there', 'hey there', 'halo there',
+    'hi petroknow', 'hello petroknow', 'hey petroknow', 'halo petroknow',
+    'good morning petroknow', 'good afternoon petroknow', 'good evening petroknow'
+  ]);
+
+  if (greetingPhrases.has(cleaned)) {
+    return {
+      type: 'greeting',
+      response: "Hello! I'm the PetroKnow AI Knowledge Assistant. Ask me about equipment procedures, safety protocols, or maintenance tips — for example, try 'compressor vibration' or 'EQ-CMP-204 shutdown procedure'."
+    };
+  }
+
+  // Regex check for greeting words with optional friendly address
+  const isPureGreeting = /^(hi|hello|hey|halo|howdy|greetings|good\s+(morning|afternoon|evening|day))(\s+(there|all|team|assistant|petroknow|bot|ai|everyone))?$/i.test(cleaned);
+  if (isPureGreeting) {
+    return {
+      type: 'greeting',
+      response: "Hello! I'm the PetroKnow AI Knowledge Assistant. Ask me about equipment procedures, safety protocols, or maintenance tips — for example, try 'compressor vibration' or 'EQ-CMP-204 shutdown procedure'."
+    };
+  }
+
+  // 2. Check for standalone help / question mark
+  if (/^(help|help\s+me|\?|need\s+help|how\s+to\s+use|commands|menu)$/i.test(cleaned)) {
+    return {
+      type: 'self_explanation',
+      response: "PetroKnow is an AI-powered manufacturing knowledge hub that unifies plant SOPs, verified expert knowledge, and physical equipment data into one searchable system. You can ask me operational questions, scan equipment QR codes or spare part barcodes, and every answer I give is cited and verification-tracked so you always know how trustworthy it is."
+    };
+  }
+
+  // 3. Check for meta / self-explanation questions about the app
+  const metaPatterns = [
+    /what\s+is\s+(this\s+)?(website|web\s+app|web|app|application|system|platform|tool|petroknow)/i,
+    /what\s+(is|does)\s+petroknow(\s+do)?/i,
+    /who\s+are\s+you/i,
+    /what\s+(can|do)\s+you\s+do/i,
+    /how\s+does\s+(this\s+)?(website|app|system|platform|petroknow)\s+work/i,
+    /what\s+is\s+the\s+purpose\s+of\s+(this\s+app|this\s+website|petroknow)/i,
+    /tell\s+me\s+about\s+(this\s+app|this\s+website|petroknow)/i,
+    /explain\s+(this\s+app|this\s+website|petroknow)/i,
+    /about\s+petroknow/i,
+    /what\s+is\s+this/i
+  ];
+
+  for (const pattern of metaPatterns) {
+    if (pattern.test(cleaned)) {
+      return {
+        type: 'self_explanation',
+        response: "PetroKnow is an AI-powered manufacturing knowledge hub that unifies plant SOPs, verified expert knowledge, and physical equipment data into one searchable system. You can ask me operational questions, scan equipment QR codes or spare part barcodes, and every answer I give is cited and verification-tracked so you always know how trustworthy it is."
+      };
+    }
+  }
+
+  return null;
+}
+
 /**
  * Tokenizes text and removes common English/technical stopwords
  */

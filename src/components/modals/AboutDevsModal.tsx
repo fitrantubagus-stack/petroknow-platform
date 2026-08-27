@@ -61,24 +61,6 @@ const DEVELOPERS: DeveloperProfile[] = [
     gradient: 'from-cyan-500 to-indigo-500',
     textGradient: 'text-cyan-300',
     badgeColor: 'bg-cyan-500/10 border-cyan-500/30 text-cyan-300'
-  },
-  {
-    id: 'excel',
-    name: 'Excel Bagus Alif Mahesa',
-    initials: 'EB',
-    roleTitle: 'Quality Assurance & Systems Testing',
-    shortDescription: 'Validating data integrity across the knowledge verification pipeline, testing scan and search reliability, and ensuring consistent behavior across roles.',
-    fullName: 'Excel Bagus Alif Mahesa',
-    placeAndDateOfBirth: 'Cilegon, July 13, 2003',
-    nim: '24010380013',
-    faculty: 'Faculty of Engineering and Computer Science',
-    university: 'Universitas Muhammadiyah Banten',
-    studyProgram: 'Informatics Engineering',
-    hobbies: 'watch movies, play games',
-    email: 'dalif4193@gmail.com',
-    gradient: 'from-indigo-500 to-emerald-500',
-    textGradient: 'text-indigo-300',
-    badgeColor: 'bg-indigo-500/10 border-indigo-500/30 text-indigo-300'
   }
 ];
 
@@ -291,15 +273,15 @@ export const AboutDevsModal: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold uppercase tracking-wider text-teal-400">Nexust Team</span>
-                  <span className="text-xs text-slate-400">• 3 Engineering Members</span>
+                  <span className="text-xs text-slate-400">• 2 Engineering Members</span>
                 </div>
                 <span className="text-[11px] text-slate-400 italic hidden sm:inline">
                   Click any card to view full student biodata
                 </span>
               </div>
 
-              {/* 3 Developer Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* 2 Developer Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {DEVELOPERS.map((dev) => (
                   <div
                     key={dev.id}

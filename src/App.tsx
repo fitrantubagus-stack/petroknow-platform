@@ -59,7 +59,7 @@ const VIEW_TO_PATH_MAP: Record<AppView, string> = {
 // Route wrapper that renders with the app layout (Navbar + Sidebar)
 const AppLayoutWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
+    <div className="h-screen overflow-hidden bg-slate-950 text-slate-100 flex flex-col font-sans">
       <Navbar />
       <div className="flex-1 flex overflow-hidden">
         <Sidebar />

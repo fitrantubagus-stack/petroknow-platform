@@ -10,7 +10,7 @@ import {
   INITIAL_ACTIVITY_FEED, INITIAL_RETIREMENT_CAMPAIGNS 
 } from '../data/initialData';
 import { calculateFreshness, SIMULATED_CURRENT_DATE } from '../utils/freshness';
-import { searchKnowledgeBase } from '../utils/searchEngine';
+import { searchKnowledgeBase, detectAssistantIntent } from '../utils/searchEngine';
 
 export type AppView = 
   | 'landing' 
@@ -101,7 +101,7 @@ interface AppContextType {
 
   verifyKnowledgeEntry: (id: string, action: 'approve' | 'request_edit' | 'reject', notes?: string) => void;
   reverifyKnowledgeEntry: (id: string) => void;
-  sendChatMessage: (text: string, imageInfo?: { url: string; label: string }) => Promise<void>;
+  sendChatMessage: (text: string, imageInfo?: { url: string; label: string }, customAiResponse?: Partial<ChatMessage>) => Promise<void>;
   rateChatAnswer: (messageId: string, rating: 'up' | 'down') => void;
   logKnowledgeGap: (question: string, relatedEquipmentId?: string, impact?: 'High' | 'Medium' | 'Low') => KnowledgeGap;
   assignKnowledgeGap: (gapId: string, assignedTo: string) => void;
@@ -525,7 +525,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // Chat message submission
-  const sendChatMessage = async (text: string, imageInfo?: { url: string; label: string }) => {
+  const sendChatMessage = async (
+    text: string, 
+    imageInfo?: { url: string; label: string },
+    customAiResponse?: Partial<ChatMessage>
+  ) => {
     const userMsgId = `msg-user-${Date.now()}`;
     const userMsg: ChatMessage = {
       id: userMsgId,
@@ -537,6 +541,45 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     setChatMessages(prev => [...prev, userMsg]);
+
+    // If a custom AI response was explicitly supplied (e.g. from genuine QR/barcode scan)
+    if (customAiResponse) {
+      await new Promise(res => setTimeout(res, 400));
+      const assistantMsgId = `msg-ai-${Date.now()}`;
+      const aiMsg: ChatMessage = {
+        id: assistantMsgId,
+        sender: 'assistant',
+        text: customAiResponse.text || '',
+        timestamp: 'Just now',
+        matchedEntry: customAiResponse.matchedEntry,
+        matchScore: customAiResponse.matchScore,
+        confidenceStatus: customAiResponse.confidenceStatus,
+        sources: customAiResponse.sources,
+        isGapOffer: customAiResponse.isGapOffer,
+        rawQuery: customAiResponse.rawQuery,
+        ...customAiResponse
+      };
+      setChatMessages(prev => [...prev, aiMsg]);
+      return;
+    }
+
+    // Check for lightweight heuristic system intent (greetings / self-explanation / meta questions)
+    if (!imageInfo) {
+      const intent = detectAssistantIntent(text);
+      if (intent) {
+        await new Promise(res => setTimeout(res, 350));
+        const assistantMsgId = `msg-ai-${Date.now()}`;
+        const aiMsg: ChatMessage = {
+          id: assistantMsgId,
+          sender: 'assistant',
+          text: intent.response,
+          timestamp: 'Just now'
+          // No confidenceStatus, no matchedEntry, no sources, no isGapOffer
+        };
+        setChatMessages(prev => [...prev, aiMsg]);
+        return;
+      }
+    }
 
     // Track query for analytics
     const cleanedQuery = (imageInfo?.label ? `${imageInfo.label} ${text}` : text).toLowerCase().trim();

@@ -128,7 +128,7 @@ export const Sidebar: React.FC = () => {
 
   return (
     <aside 
-      className={`h-[calc(100vh-4rem)] bg-slate-900 border-r border-slate-800 transition-all duration-300 flex flex-col justify-between select-none z-30 shrink-0 ${
+      className={`h-full bg-slate-900 border-r border-slate-800 transition-all duration-300 flex flex-col select-none z-30 shrink-0 ${
         sidebarCollapsed ? 'w-18' : 'w-64'
       }`}
     >
