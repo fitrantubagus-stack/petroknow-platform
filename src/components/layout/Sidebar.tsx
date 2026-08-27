@@ -4,7 +4,7 @@ import { useApp, AppView } from '../../context/AppContext';
 import { 
   LayoutDashboard, Bot, Map, QrCode, Lightbulb, 
   CheckSquare, BookOpen, Clock, BarChart3, ChevronLeft, 
-  ChevronRight, Lock, Sparkles, Shield, UserMinus 
+  ChevronRight, Lock, Sparkles, Shield, UserMinus, X 
 } from 'lucide-react';
 
 export const VIEW_TO_PATH: Record<AppView, string> = {
@@ -25,6 +25,7 @@ export const VIEW_TO_PATH: Record<AppView, string> = {
 export const Sidebar: React.FC = () => {
   const { 
     currentView, setCurrentView, sidebarCollapsed, toggleSidebar, 
+    mobileSidebarOpen, closeMobileSidebar,
     role, stats, setActiveModal 
   } = useApp();
   
@@ -127,51 +128,82 @@ export const Sidebar: React.FC = () => {
   };
 
   return (
-    <aside 
-      className={`h-full bg-slate-900 border-r border-slate-800 transition-all duration-300 flex flex-col select-none z-30 shrink-0 ${
-        sidebarCollapsed ? 'w-18' : 'w-64'
-      }`}
-    >
-      {/* Top Section / Nav list */}
-      <div className="p-3 space-y-1 overflow-y-auto">
-        {navItems.map((item) => {
-          const isAllowed = hasRoleAccess(item.minRole);
-          const isCurrent = currentView === item.id || location.pathname === item.path;
+    <>
+      {/* Mobile Backdrop Overlay */}
+      {mobileSidebarOpen && (
+        <div 
+          onClick={closeMobileSidebar}
+          className="fixed inset-0 bg-black/60 backdrop-blur-xs z-40 md:hidden transition-opacity"
+          aria-hidden="true"
+        />
+      )}
 
-          return (
-            <div key={item.id} className="relative group">
-              <NavLink
-                to={item.path}
-                onClick={(e) => {
-                  if (!isAllowed) {
-                    e.preventDefault();
-                    setActiveModal('login_role');
-                  } else {
-                    setCurrentView(item.id);
-                  }
-                }}
-                className={({ isActive }) => {
-                  const active = isActive || isCurrent;
-                  return `w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150 ${
-                    active
-                      ? 'bg-gradient-to-r from-teal-500/20 to-teal-500/5 text-teal-300 border border-teal-500/40 shadow-sm shadow-teal-500/10'
-                      : isAllowed
-                      ? 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/70 border border-transparent'
-                      : 'text-slate-600 hover:text-slate-400 hover:bg-slate-800/30 border border-transparent opacity-70'
-                  }`;
-                }}
-                title={sidebarCollapsed ? item.label : undefined}
-              >
-                {({ isActive }) => {
-                  const active = isActive || isCurrent;
-                  return (
-                    <>
-                      <div className={`shrink-0 ${active ? 'text-teal-400' : isAllowed ? 'text-slate-400 group-hover:text-slate-200' : 'text-slate-600'}`}>
-                        {item.icon}
-                      </div>
+      <aside 
+        className={`fixed inset-y-0 left-0 z-50 h-full w-72 max-w-[85vw] bg-slate-900 border-r border-slate-800 flex flex-col select-none transition-transform duration-300 ease-in-out md:static md:inset-auto md:z-30 md:h-full md:transition-all md:duration-300 md:translate-x-0 shrink-0 ${
+          mobileSidebarOpen ? 'translate-x-0 shadow-2xl shadow-black/80' : '-translate-x-full'
+        } ${
+          sidebarCollapsed ? 'md:w-18' : 'md:w-64'
+        }`}
+      >
+        {/* Mobile Drawer Top Bar */}
+        <div className="flex md:hidden items-center justify-between px-4 py-3 border-b border-slate-800 shrink-0">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-extrabold tracking-tight text-slate-100 font-sans">
+              Petro<span className="text-teal-400">Know</span>
+            </span>
+            <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-slate-800 text-teal-400 border border-slate-700">
+              MENU
+            </span>
+          </div>
+          <button
+            onClick={closeMobileSidebar}
+            className="p-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700/60"
+            aria-label="Close menu"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
 
-                      {!sidebarCollapsed && (
-                        <div className="flex-1 flex items-center justify-between text-left overflow-hidden">
+        {/* Top Section / Nav list */}
+        <div className="p-3 space-y-1 overflow-y-auto flex-1 md:flex-initial">
+          {navItems.map((item) => {
+            const isAllowed = hasRoleAccess(item.minRole);
+            const isCurrent = currentView === item.id || location.pathname === item.path;
+
+            return (
+              <div key={item.id} className="relative group">
+                <NavLink
+                  to={item.path}
+                  onClick={(e) => {
+                    closeMobileSidebar();
+                    if (!isAllowed) {
+                      e.preventDefault();
+                      setActiveModal('login_role');
+                    } else {
+                      setCurrentView(item.id);
+                    }
+                  }}
+                  className={({ isActive }) => {
+                    const active = isActive || isCurrent;
+                    return `w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150 ${
+                      active
+                        ? 'bg-gradient-to-r from-teal-500/20 to-teal-500/5 text-teal-300 border border-teal-500/40 shadow-sm shadow-teal-500/10'
+                        : isAllowed
+                        ? 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/70 border border-transparent'
+                        : 'text-slate-600 hover:text-slate-400 hover:bg-slate-800/30 border border-transparent opacity-70'
+                    }`;
+                  }}
+                  title={sidebarCollapsed ? item.label : undefined}
+                >
+                  {({ isActive }) => {
+                    const active = isActive || isCurrent;
+                    return (
+                      <>
+                        <div className={`shrink-0 ${active ? 'text-teal-400' : isAllowed ? 'text-slate-400 group-hover:text-slate-200' : 'text-slate-600'}`}>
+                          {item.icon}
+                        </div>
+
+                        <div className={`flex-1 flex items-center justify-between text-left overflow-hidden ${sidebarCollapsed ? 'md:hidden' : ''}`}>
                           <span className="truncate">{item.label}</span>
                           <div className="flex items-center gap-1.5 shrink-0 ml-2">
                             {!isAllowed && (
@@ -184,37 +216,35 @@ export const Sidebar: React.FC = () => {
                             )}
                           </div>
                         </div>
-                      )}
-                    </>
-                  );
-                }}
-              </NavLink>
+                      </>
+                    );
+                  }}
+                </NavLink>
 
-              {/* Floating Tooltip when Collapsed */}
-              {sidebarCollapsed && (
-                <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 hidden group-hover:flex items-center gap-2 bg-slate-950 text-slate-100 text-xs px-3 py-1.5 rounded-lg border border-slate-700 shadow-xl whitespace-nowrap z-50 animate-fade-in pointer-events-none">
-                  <span>{item.label}</span>
-                  {!isAllowed && (
-                    <span className="text-[10px] text-amber-400 flex items-center gap-1">
-                      <Lock className="w-3 h-3" /> ({item.requiresRoleName})
-                    </span>
-                  )}
-                  {item.badge !== undefined && (
-                    <span className="text-[10px] font-mono font-bold px-1.5 rounded bg-slate-800 text-teal-400">
-                      {item.badge}
-                    </span>
-                  )}
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
+                {/* Floating Tooltip when Collapsed on Desktop */}
+                {sidebarCollapsed && (
+                  <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 hidden md:group-hover:flex items-center gap-2 bg-slate-950 text-slate-100 text-xs px-3 py-1.5 rounded-lg border border-slate-700 shadow-xl whitespace-nowrap z-50 animate-fade-in pointer-events-none">
+                    <span>{item.label}</span>
+                    {!isAllowed && (
+                      <span className="text-[10px] text-amber-400 flex items-center gap-1">
+                        <Lock className="w-3 h-3" /> ({item.requiresRoleName})
+                      </span>
+                    )}
+                    {item.badge !== undefined && (
+                      <span className="text-[10px] font-mono font-bold px-1.5 rounded bg-slate-800 text-teal-400">
+                        {item.badge}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
 
-      {/* Bottom Section: Plant Status indicator & Collapse Toggle */}
-      <div className="p-3 border-t border-slate-800 space-y-2">
-        {!sidebarCollapsed && (
-          <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 text-[11px] space-y-1">
+        {/* Bottom Section: Plant Status indicator & Collapse Toggle */}
+        <div className="p-3 border-t border-slate-800 space-y-2 mt-auto md:mt-0">
+          <div className={`p-3 rounded-xl bg-slate-950/60 border border-slate-800 text-[11px] space-y-1 ${sidebarCollapsed ? 'md:hidden' : ''}`}>
             <div className="flex items-center justify-between">
               <span className="text-slate-400 font-medium">Plant Health Index</span>
               <span className="font-mono font-bold text-emerald-400">{stats.verificationRate}% Verified</span>
@@ -230,24 +260,24 @@ export const Sidebar: React.FC = () => {
               <span>{stats.staleCount} Stale</span>
             </div>
           </div>
-        )}
 
-        <button
-          onClick={toggleSidebar}
-          className="w-full flex items-center justify-center p-2 rounded-xl bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700/60 transition-colors"
-          title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        >
-          {sidebarCollapsed ? (
-            <ChevronRight className="w-4 h-4" />
-          ) : (
-            <div className="flex items-center gap-2 text-xs font-semibold">
-              <ChevronLeft className="w-4 h-4" />
-              <span>Collapse Sidebar</span>
-            </div>
-          )}
-        </button>
-      </div>
-    </aside>
+          <button
+            onClick={toggleSidebar}
+            className="hidden md:flex w-full items-center justify-center p-2 rounded-xl bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700/60 transition-colors"
+            title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {sidebarCollapsed ? (
+              <ChevronRight className="w-4 h-4" />
+            ) : (
+              <div className="flex items-center gap-2 text-xs font-semibold">
+                <ChevronLeft className="w-4 h-4" />
+                <span>Collapse Sidebar</span>
+              </div>
+            )}
+          </button>
+        </div>
+      </aside>
+    </>
   );
 };
 

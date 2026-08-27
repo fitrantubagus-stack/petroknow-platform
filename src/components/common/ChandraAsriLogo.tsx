@@ -5,13 +5,15 @@ interface ChandraAsriLogoProps {
   size?: number;
   showWordmark?: boolean;
   theme?: 'dark' | 'light';
+  wordmarkClassName?: string;
 }
 
 export const ChandraAsriLogo: React.FC<ChandraAsriLogoProps> = ({
   className = '',
   size = 28,
   showWordmark = false,
-  theme = 'dark'
+  theme = 'dark',
+  wordmarkClassName = ''
 }) => {
   return (
     <div className={`inline-flex items-center gap-2 select-none ${className}`}>
@@ -50,11 +52,11 @@ export const ChandraAsriLogo: React.FC<ChandraAsriLogoProps> = ({
       </svg>
 
       {showWordmark && (
-        <div className="flex flex-col leading-none">
-          <span className={`text-sm font-bold tracking-tight ${theme === 'dark' ? 'text-slate-100' : 'text-slate-900'}`}>
+        <div className={`flex flex-col leading-none ${wordmarkClassName}`}>
+          <span className={`text-xs sm:text-sm font-bold tracking-tight ${theme === 'dark' ? 'text-slate-100' : 'text-slate-900'}`}>
             Chandra Asri
           </span>
-          <span className="text-[9px] uppercase tracking-widest text-cyan-400 font-semibold">
+          <span className="text-[8px] sm:text-[9px] uppercase tracking-widest text-cyan-400 font-semibold">
             Group
           </span>
         </div>

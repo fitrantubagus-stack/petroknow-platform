@@ -72,12 +72,13 @@ const AppLayoutWrapper: React.FC<{ children: React.ReactNode }> = ({ children })
 };
 
 const MainAppContent: React.FC = () => {
-  const { currentView, setCurrentView, setActiveModal } = useApp();
+  const { currentView, setCurrentView, setActiveModal, closeMobileSidebar } = useApp();
   const location = useLocation();
   const navigate = useNavigate();
 
   // Sync URL changes to AppContext view
   useEffect(() => {
+    closeMobileSidebar();
     const view = PATH_TO_VIEW_MAP[location.pathname];
     if (view && view !== currentView) {
       setCurrentView(view);

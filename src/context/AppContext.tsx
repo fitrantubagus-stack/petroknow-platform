@@ -45,6 +45,10 @@ interface AppContextType {
   sidebarCollapsed: boolean;
   setSidebarCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
   toggleSidebar: () => void;
+  mobileSidebarOpen: boolean;
+  setMobileSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  toggleMobileSidebar: () => void;
+  closeMobileSidebar: () => void;
 
   // Modals & Active selections
   activeModal: ActiveModal;
@@ -139,6 +143,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
     return localStorage.getItem('petroknow_sidebar_collapsed') === 'true';
   });
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState<boolean>(false);
 
   const [activeModal, setActiveModal] = useState<ActiveModal>(null);
   const [selectedEquipmentId, setSelectedEquipmentId] = useState<string | null>(null);
@@ -229,6 +234,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       localStorage.setItem('petroknow_sidebar_collapsed', String(next));
       return next;
     });
+  };
+
+  const toggleMobileSidebar = () => {
+    setMobileSidebarOpen(prev => !prev);
+  };
+
+  const closeMobileSidebar = () => {
+    setMobileSidebarOpen(false);
   };
 
   const setRole = (newRole: Role) => {
@@ -834,6 +847,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         sidebarCollapsed,
         setSidebarCollapsed,
         toggleSidebar,
+        mobileSidebarOpen,
+        setMobileSidebarOpen,
+        toggleMobileSidebar,
+        closeMobileSidebar,
         activeModal,
         setActiveModal,
         selectedEquipmentId,
