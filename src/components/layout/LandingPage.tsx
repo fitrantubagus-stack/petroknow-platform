@@ -4,7 +4,7 @@ import { motion } from 'motion/react';
 import { useApp } from '../../context/AppContext';
 import { ChandraAsriLogo } from '../common/ChandraAsriLogo';
 import { 
-  Cpu, ArrowRight, ShieldCheck, QrCode, Sparkles, 
+  ArrowRight, ShieldCheck, QrCode, Sparkles, 
   Clock, Map, Layers, CheckCircle2, ChevronDown, 
   HelpCircle, Users, Activity, FileText, Barcode, 
   Check, Lock, ExternalLink, Flame, Mail, Download 
@@ -141,8 +141,8 @@ export const LandingPage: React.FC = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 sm:gap-3 group min-w-0">
             <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-teal-500 to-cyan-400 p-0.5 shadow-lg shadow-teal-500/20 group-hover:scale-105 transition-transform shrink-0">
-              <div className="w-full h-full rounded-[10px] bg-slate-950 flex items-center justify-center">
-                <Cpu className="w-4 h-4 sm:w-5 sm:h-5 text-teal-400" />
+              <div className="w-full h-full rounded-[10px] bg-slate-950 flex items-center justify-center overflow-hidden">
+                <img src="/app-logo.svg" alt="PetroKnow" className="w-full h-full object-contain p-0.5" />
               </div>
             </div>
             <div className="min-w-0">
@@ -333,7 +333,7 @@ export const LandingPage: React.FC = () => {
                 <div className="p-4 rounded-xl bg-slate-950/80 border border-teal-500/40 space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5">
-                      <Cpu className="w-4 h-4 text-teal-400" />
+                      <img src="/app-logo.svg" alt="PetroKnow" className="w-4 h-4 object-contain" />
                       <span className="text-xs font-bold text-teal-300">PetroKnow Knowledge Match</span>
                     </div>
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1">
@@ -590,7 +590,7 @@ export const LandingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex flex-col sm:flex-row items-center sm:items-center gap-1 sm:gap-2 text-center sm:text-left">
             <div className="flex items-center gap-1.5">
-              <Cpu className="w-4 h-4 text-teal-400 shrink-0" />
+              <img src="/app-logo.svg" alt="PetroKnow" className="w-4 h-4 object-contain shrink-0" />
               <span className="font-bold text-slate-200">PetroKnow</span>
             </div>
             <span className="text-slate-400">— AI-Powered Manufacturing Knowledge Hub</span>

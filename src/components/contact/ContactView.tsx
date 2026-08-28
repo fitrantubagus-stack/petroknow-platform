@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { ChandraAsriLogo } from '../common/ChandraAsriLogo';
 import { 
-  Cpu, ArrowLeft, Send, CheckCircle2, AlertCircle, 
+  ArrowLeft, Send, CheckCircle2, AlertCircle, 
   Mail, MessageSquare, User, HelpCircle, Loader2, Sparkles 
 } from 'lucide-react';
 
@@ -99,8 +99,8 @@ export const ContactView: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3 group">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-teal-500 to-cyan-400 p-0.5 shadow-lg shadow-teal-500/20 group-hover:scale-105 transition-transform">
-              <div className="w-full h-full rounded-[10px] bg-slate-950 flex items-center justify-center">
-                <Cpu className="w-4 h-4 text-teal-400" />
+              <div className="w-full h-full rounded-[10px] bg-slate-950 flex items-center justify-center overflow-hidden">
+                <img src="/app-logo.svg" alt="PetroKnow" className="w-full h-full object-contain p-0.5" />
               </div>
             </div>
             <div>
@@ -310,7 +310,7 @@ export const ContactView: React.FC = () => {
       <footer className="py-8 border-t border-slate-800/80 bg-slate-950 text-xs text-slate-400 mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <Cpu className="w-4 h-4 text-teal-400" />
+            <img src="/app-logo.svg" alt="PetroKnow" className="w-4 h-4 object-contain" />
             <span className="font-bold text-slate-200">PetroKnow</span>
             <span>— AI-Powered Manufacturing Knowledge Hub</span>
           </div>

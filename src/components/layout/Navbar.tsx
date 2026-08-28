@@ -5,7 +5,7 @@ import { Role } from '../../types';
 import { INITIAL_USERS } from '../../data/initialData';
 import { ChandraAsriLogo } from '../common/ChandraAsriLogo';
 import { 
-  Cpu, Search, ShieldCheck, Wrench, Microscope, 
+  Search, ShieldCheck, Wrench, Microscope, 
   ChevronDown, Bell, RotateCcw, Sparkles, ExternalLink, 
   AlertTriangle, Check, Layers, Compass, Menu, X, Download 
 } from 'lucide-react';
@@ -91,8 +91,8 @@ export const Navbar: React.FC = () => {
           >
             {/* PetroKnow Emblem */}
             <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-teal-600 to-cyan-500 p-0.5 shadow-md shadow-teal-500/20 group-hover:scale-105 transition-transform shrink-0">
-              <div className="w-full h-full rounded-[10px] bg-slate-950 flex items-center justify-center">
-                <Cpu className="w-4 h-4 sm:w-5 sm:h-5 text-teal-400" />
+              <div className="w-full h-full rounded-[10px] bg-slate-950 flex items-center justify-center overflow-hidden">
+                <img src="/app-logo.svg" alt="PetroKnow" className="w-full h-full object-contain p-0.5" />
               </div>
             </div>
 
