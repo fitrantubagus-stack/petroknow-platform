@@ -87,13 +87,11 @@ export const Navbar: React.FC = () => {
           <Link 
             to="/"
             onClick={() => setCurrentView('landing')}
-            className="cursor-pointer flex items-center gap-1.5 sm:gap-3 group min-w-0"
+            className="cursor-pointer flex items-center gap-2 sm:gap-3 group min-w-0"
           >
             {/* PetroKnow Emblem */}
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-teal-600 to-cyan-500 p-0.5 shadow-md shadow-teal-500/20 group-hover:scale-105 transition-transform shrink-0">
-              <div className="w-full h-full rounded-[10px] bg-slate-950 flex items-center justify-center overflow-hidden">
-                <img src="/app-logo.svg" alt="PetroKnow" className="w-full h-full object-contain p-0.5" />
-              </div>
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-teal-500/20 to-cyan-500/20 border border-teal-500/30 p-1 shadow-md shadow-teal-500/10 group-hover:scale-105 transition-transform shrink-0 flex items-center justify-center">
+              <img src="/app-logo.svg" alt="PetroKnow" className="w-full h-full object-contain drop-shadow" />
             </div>
 
             <div className="flex flex-col min-w-0">
