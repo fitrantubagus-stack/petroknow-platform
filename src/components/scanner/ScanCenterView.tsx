@@ -27,22 +27,10 @@ export const ScanCenterView: React.FC = () => {
   const animationFrameRef = useRef<number | null>(null);
   const zxingReaderRef = useRef<BrowserMultiFormatReader | null>(null);
 
-  // Initialize ZXing BrowserMultiFormatReader for 1D Barcode & Multi-format Decoding
+  // Initialize ZXing BrowserMultiFormatReader specifically optimized for 1D Code128 Barcodes
   useEffect(() => {
     const hints = new Map();
-    const formats = [
-      BarcodeFormat.CODE_128,
-      BarcodeFormat.CODE_39,
-      BarcodeFormat.EAN_13,
-      BarcodeFormat.EAN_8,
-      BarcodeFormat.UPC_A,
-      BarcodeFormat.UPC_E,
-      BarcodeFormat.ITF,
-      BarcodeFormat.CODABAR,
-      BarcodeFormat.QR_CODE,
-      BarcodeFormat.DATA_MATRIX
-    ];
-    hints.set(DecodeHintType.POSSIBLE_FORMATS, formats);
+    hints.set(DecodeHintType.POSSIBLE_FORMATS, [BarcodeFormat.CODE_128]);
     hints.set(DecodeHintType.TRY_HARDER, true);
     zxingReaderRef.current = new BrowserMultiFormatReader(hints);
 
@@ -254,7 +242,11 @@ export const ScanCenterView: React.FC = () => {
     } else {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'environment' }
+          video: { 
+            facingMode: 'environment',
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          }
         });
         streamRef.current = stream;
         setCameraActive(true);
@@ -548,7 +540,15 @@ export const ScanCenterView: React.FC = () => {
               {/* Viewfinder Frame */}
               <div className="relative aspect-video rounded-xl bg-slate-950 border border-slate-800 overflow-hidden flex items-center justify-center">
                 {cameraActive ? (
-                  <video ref={videoRef} className="w-full h-full object-cover" />
+                  <>
+                    <video ref={videoRef} className="w-full h-full object-cover" />
+                    {/* On-screen alignment hint during live scan */}
+                    <div className="absolute top-2.5 inset-x-3 flex justify-center pointer-events-none">
+                      <span className="px-2.5 py-1 rounded-md bg-slate-950/85 backdrop-blur border border-cyan-500/40 text-[11px] text-cyan-200 font-medium shadow-md">
+                        Align barcode horizontally to fill frame width
+                      </span>
+                    </div>
+                  </>
                 ) : (
                   <div className="text-center p-6 space-y-2">
                     <Barcode className="w-16 h-16 text-cyan-500/60 mx-auto" />
@@ -578,6 +578,28 @@ export const ScanCenterView: React.FC = () => {
                 {scanStatus && (
                   <span className="text-xs font-mono text-cyan-300 animate-fade-in">{scanStatus}</span>
                 )}
+              </div>
+
+              {/* 1D Barcode Alignment Guidance */}
+              <div className="p-3.5 rounded-xl bg-slate-950/70 border border-cyan-950 text-[11px] space-y-1.5">
+                <div className="flex items-center gap-1.5 text-cyan-400 font-semibold text-xs">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>1D Barcode Scan Optimization Tips</span>
+                </div>
+                <ul className="space-y-1 text-slate-400 leading-relaxed">
+                  <li className="flex items-start gap-1.5">
+                    <span className="text-cyan-400 font-bold">•</span>
+                    <span><strong className="text-slate-200">Fill horizontal width:</strong> Center the barcode across the full laser line so individual Code128 bars are sharp.</span>
+                  </li>
+                  <li className="flex items-start gap-1.5">
+                    <span className="text-cyan-400 font-bold">•</span>
+                    <span><strong className="text-slate-200">Hold steady:</strong> Hold phone or label still for 1 second to eliminate motion blur.</span>
+                  </li>
+                  <li className="flex items-start gap-1.5">
+                    <span className="text-cyan-400 font-bold">•</span>
+                    <span><strong className="text-slate-200">Ensure good lighting:</strong> Minimize shiny reflections or hot spots on glossy parts packaging.</span>
+                  </li>
+                </ul>
               </div>
             </div>
 
