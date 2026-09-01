@@ -181,39 +181,52 @@ export const ScanCenterView: React.FC = () => {
           const ctx = canvas.getContext('2d', { willReadFrequently: true });
           if (ctx) {
             if (activeTab === 'barcode') {
-              // Glare tolerance: mild grayscale + contrast normalization (1.15) to keep bar edges sharp without blowout
-              ctx.filter = 'grayscale(1) contrast(1.15)';
-              ctx.drawImage(currentVideo, 0, 0, targetWidth, targetHeight);
-              ctx.filter = 'none';
-
-              // 1D Linear Barcode Decoding via ZXing BrowserMultiFormatReader
               if (zxingReaderRef.current) {
+                let barcodeResult: any = null;
+
+                // Pass 1: Standard contrast normalization without blur (optimal for physical/printed labels)
                 try {
-                  const result = zxingReaderRef.current.decode(canvas);
-                  if (result && result.getText() && result.getText().trim()) {
-                    isScanning = false;
-                    const decodedText = result.getText().trim();
+                  ctx.filter = 'grayscale(1) contrast(1.15)';
+                  ctx.drawImage(currentVideo, 0, 0, targetWidth, targetHeight);
+                  ctx.filter = 'none';
+                  barcodeResult = zxingReaderRef.current.decode(canvas);
+                } catch (_pass1Err) {
+                  // Pass 1 missed (common when barcode is not aligned or affected by on-screen moire)
+                }
 
-                    // Audio beep & vibration feedback
-                    playBeep();
-                    if (typeof navigator !== 'undefined' && navigator.vibrate) {
-                      try {
-                        navigator.vibrate(100);
-                      } catch (_) {}
-                    }
-
-                    // Stop camera, clear stuck warning, and process result
-                    clearTimeout(stuckTimer);
-                    setShowStuckWarning(false);
-                    stopCamera();
-
-                    // Process matched spare part or equipment
-                    setScanStatus(`Decoded Barcode: ${decodedText}`);
-                    processDecodedCode(decodedText);
-                    return;
+                // Pass 2: Moiré-mitigation retry with slight Gaussian blur (0.6px) to suppress screen pixel beat patterns
+                if (!barcodeResult) {
+                  try {
+                    ctx.filter = 'grayscale(1) contrast(1.15) blur(0.6px)';
+                    ctx.drawImage(currentVideo, 0, 0, targetWidth, targetHeight);
+                    ctx.filter = 'none';
+                    barcodeResult = zxingReaderRef.current.decode(canvas);
+                  } catch (_pass2Err) {
+                    // Both passes missed for this frame
                   }
-                } catch (_zxingErr) {
-                  // Normal frame-by-frame NotFoundException when barcode is not yet aligned
+                }
+
+                if (barcodeResult && barcodeResult.getText() && barcodeResult.getText().trim()) {
+                  isScanning = false;
+                  const decodedText = barcodeResult.getText().trim();
+
+                  // Audio beep & vibration feedback
+                  playBeep();
+                  if (typeof navigator !== 'undefined' && navigator.vibrate) {
+                    try {
+                      navigator.vibrate(100);
+                    } catch (_) {}
+                  }
+
+                  // Stop camera, clear stuck warning, and process result
+                  clearTimeout(stuckTimer);
+                  setShowStuckWarning(false);
+                  stopCamera();
+
+                  // Process matched spare part or equipment
+                  setScanStatus(`Decoded Barcode: ${decodedText}`);
+                  processDecodedCode(decodedText);
+                  return;
                 }
               }
             } else {
@@ -647,6 +660,10 @@ export const ScanCenterView: React.FC = () => {
                   <li className="flex items-start gap-1.5">
                     <span className="text-cyan-400 font-bold">•</span>
                     <span><strong className="text-slate-200">Ensure good lighting:</strong> Minimize shiny reflections or hot spots on glossy parts packaging.</span>
+                  </li>
+                  <li className="flex items-start gap-1.5">
+                    <span className="text-cyan-400 font-bold">•</span>
+                    <span><strong className="text-slate-200">Screen moiré auto-filter:</strong> Built-in two-pass filter automatically cancels digital screen pixel interference when scanning off a monitor.</span>
                   </li>
                 </ul>
               </div>
