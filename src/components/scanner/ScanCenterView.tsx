@@ -1,6 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useApp } from '../../context/AppContext';
 import { decodeBarcodeOrQrFromFile, generateQrCodeDataUrl, generateBarcodeDataUrl } from '../../utils/barcodeUtils';
+import jsQR from 'jsqr';
+import { BrowserMultiFormatReader, DecodeHintType, BarcodeFormat } from '@zxing/library';
 import { 
   QrCode, Barcode, FileText, Camera, Upload, 
   Sparkles, CheckCircle2, AlertTriangle, ArrowRight, 
@@ -21,6 +23,37 @@ export const ScanCenterView: React.FC = () => {
   const [cameraActive, setCameraActive] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
+  const zxingReaderRef = useRef<BrowserMultiFormatReader | null>(null);
+
+  // Initialize ZXing BrowserMultiFormatReader for 1D Barcode & Multi-format Decoding
+  useEffect(() => {
+    const hints = new Map();
+    const formats = [
+      BarcodeFormat.CODE_128,
+      BarcodeFormat.CODE_39,
+      BarcodeFormat.EAN_13,
+      BarcodeFormat.EAN_8,
+      BarcodeFormat.UPC_A,
+      BarcodeFormat.UPC_E,
+      BarcodeFormat.ITF,
+      BarcodeFormat.CODABAR,
+      BarcodeFormat.QR_CODE,
+      BarcodeFormat.DATA_MATRIX
+    ];
+    hints.set(DecodeHintType.POSSIBLE_FORMATS, formats);
+    hints.set(DecodeHintType.TRY_HARDER, true);
+    zxingReaderRef.current = new BrowserMultiFormatReader(hints);
+
+    return () => {
+      if (zxingReaderRef.current) {
+        try {
+          zxingReaderRef.current.reset();
+        } catch (_) {}
+      }
+    };
+  }, []);
 
   // OCR Upload States
   const [ocrStep, setOcrStep] = useState<number>(0);
@@ -32,39 +65,218 @@ export const ScanCenterView: React.FC = () => {
   const [selectedEqId, setSelectedEqId] = useState<string>('EQ-CMP-204');
   const [ocrSuccessMsg, setOcrSuccessMsg] = useState<string | null>(null);
 
-  // Clean up camera stream on unmount
+  // Audio feedback on successful QR / barcode decode
+  const playBeep = useCallback(() => {
+    try {
+      const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      if (!AudioContextClass) return;
+      const ctx = new AudioContextClass();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, ctx.currentTime); // High pitch crisp beep (A5)
+      gain.gain.setValueAtTime(0.15, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.15);
+    } catch (e) {
+      console.warn('Audio feedback failed or not supported in this browser context:', e);
+    }
+  }, []);
+
+  const processDecodedCode = useCallback((code: string) => {
+    const trimmed = code.trim();
+    // Check if matches equipment
+    const eq = equipmentList.find(e => e.id.toLowerCase() === trimmed.toLowerCase() || e.code.toLowerCase() === trimmed.toLowerCase());
+    if (eq) {
+      setScanStatus(`Identified equipment: ${eq.code} (${eq.name})`);
+      openEquipment(eq.id);
+      return;
+    }
+
+    // Check if matches spare part
+    const part = spareParts.find(p => p.partNumber.toLowerCase() === trimmed.toLowerCase());
+    if (part) {
+      setScanStatus(`Identified spare part: ${part.partNumber} (${part.name})`);
+      openSparePart(part.partNumber);
+      return;
+    }
+
+    setScanStatus(`Code "${trimmed}" is not recognized in current plant register.`);
+  }, [equipmentList, spareParts, openEquipment, openSparePart]);
+
+  // Clean stop for camera stream and scan loop
+  const stopCamera = useCallback(() => {
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    setCameraActive(false);
+  }, []);
+
+  // Clean up camera stream and animation frame on unmount
   useEffect(() => {
     return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
       }
     };
   }, []);
 
-  // Camera start/stop
+  // Attach stream and run live decoding loop (jsQR for QR tab, ZXing BrowserMultiFormatReader for Barcode tab)
+  useEffect(() => {
+    if (!cameraActive) {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
+      return;
+    }
+
+    const video = videoRef.current;
+    const stream = streamRef.current;
+
+    if (video && stream) {
+      video.srcObject = stream;
+      video.setAttribute('playsinline', 'true');
+      video.play().catch(err => console.error('Video play error:', err));
+    }
+
+    let isScanning = true;
+
+    const scanFrame = () => {
+      if (!isScanning) return;
+
+      const currentVideo = videoRef.current;
+      const canvas = canvasRef.current;
+
+      if (currentVideo && canvas && currentVideo.readyState >= currentVideo.HAVE_CURRENT_DATA) {
+        if (currentVideo.videoWidth > 0 && currentVideo.videoHeight > 0) {
+          canvas.width = currentVideo.videoWidth;
+          canvas.height = currentVideo.videoHeight;
+          const ctx = canvas.getContext('2d', { willReadFrequently: true });
+          if (ctx) {
+            ctx.drawImage(currentVideo, 0, 0, canvas.width, canvas.height);
+
+            if (activeTab === 'barcode') {
+              // 1D Linear Barcode Decoding via ZXing BrowserMultiFormatReader
+              if (zxingReaderRef.current) {
+                try {
+                  const result = zxingReaderRef.current.decode(canvas);
+                  if (result && result.getText() && result.getText().trim()) {
+                    isScanning = false;
+                    const decodedText = result.getText().trim();
+
+                    // Audio beep & vibration feedback
+                    playBeep();
+                    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+                      try {
+                        navigator.vibrate(100);
+                      } catch (_) {}
+                    }
+
+                    // Stop camera and scan loop
+                    stopCamera();
+
+                    // Process matched spare part or equipment
+                    setScanStatus(`Decoded Barcode: ${decodedText}`);
+                    processDecodedCode(decodedText);
+                    return;
+                  }
+                } catch (_zxingErr) {
+                  // Normal frame-by-frame NotFoundException when barcode is not yet aligned
+                }
+              }
+            } else {
+              // 2D QR Code Decoding via jsQR (with fallback to ZXing)
+              const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+              const qrCode = jsQR(imageData.data, imageData.width, imageData.height, {
+                inversionAttempts: 'dontInvert'
+              });
+
+              if (qrCode && qrCode.data && qrCode.data.trim()) {
+                isScanning = false;
+                const decodedText = qrCode.data.trim();
+
+                // Audio beep & vibration feedback
+                playBeep();
+                if (typeof navigator !== 'undefined' && navigator.vibrate) {
+                  try {
+                    navigator.vibrate(100);
+                  } catch (_) {}
+                }
+
+                // Stop camera and scan loop
+                stopCamera();
+
+                // Process matched equipment or part
+                setScanStatus(`Decoded QR: ${decodedText}`);
+                processDecodedCode(decodedText);
+                return;
+              }
+            }
+          }
+        }
+      }
+
+      if (isScanning) {
+        animationFrameRef.current = requestAnimationFrame(scanFrame);
+      }
+    };
+
+    animationFrameRef.current = requestAnimationFrame(scanFrame);
+
+    return () => {
+      isScanning = false;
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
+    };
+  }, [cameraActive, activeTab, playBeep, processDecodedCode, stopCamera]);
+
+  // Camera start/stop toggle
   const toggleCamera = async () => {
     if (cameraActive) {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(t => t.stop());
-        streamRef.current = null;
-      }
-      setCameraActive(false);
+      stopCamera();
+      setScanStatus(null);
     } else {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: 'environment' }
         });
         streamRef.current = stream;
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.play();
-        }
         setCameraActive(true);
-        setScanStatus('Camera active. Align code inside viewfinder...');
+        setScanStatus(
+          activeTab === 'barcode'
+            ? 'Camera active. Align 1D linear barcode horizontally inside viewfinder...'
+            : 'Camera active. Align QR code inside viewfinder...'
+        );
       } catch (err) {
+        console.error('Camera access error:', err);
         setScanStatus('Camera access not granted or unavailable. Use file upload or test presets below.');
       }
     }
+  };
+
+  // Switch tab safely
+  const handleTabChange = (tab: 'qr' | 'barcode' | 'ocr') => {
+    if (cameraActive) {
+      stopCamera();
+    }
+    setActiveTab(tab);
+    setScanStatus(null);
   };
 
   // Handle uploaded file for QR / Barcode
@@ -79,6 +291,10 @@ export const ScanCenterView: React.FC = () => {
     setIsDecoding(false);
 
     if (decoded) {
+      playBeep();
+      if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        try { navigator.vibrate(100); } catch (_) {}
+      }
       setScanStatus(`Decoded (${decoded.type}): ${decoded.code}`);
       processDecodedCode(decoded.code);
     } else {
@@ -97,25 +313,6 @@ export const ScanCenterView: React.FC = () => {
         setScanStatus('No barcode/QR matrix found in image. Please use one of the guaranteed test presets below.');
       }
     }
-  };
-
-  const processDecodedCode = (code: string) => {
-    const trimmed = code.trim();
-    // Check if matches equipment
-    const eq = equipmentList.find(e => e.id === trimmed || e.code === trimmed);
-    if (eq) {
-      openEquipment(eq.id);
-      return;
-    }
-
-    // Check if matches spare part
-    const part = spareParts.find(p => p.partNumber === trimmed);
-    if (part) {
-      openSparePart(part.partNumber);
-      return;
-    }
-
-    setScanStatus(`Code "${trimmed}" is not recognized in current plant register.`);
   };
 
   // OCR ingestion simulation
@@ -184,6 +381,9 @@ export const ScanCenterView: React.FC = () => {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-6xl mx-auto animate-fade-in text-slate-100">
+      {/* Hidden canvas for real-time video frame QR extraction */}
+      <canvas ref={canvasRef} className="hidden" aria-hidden="true" />
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-800">
         <div>
@@ -199,7 +399,7 @@ export const ScanCenterView: React.FC = () => {
       {/* Tabs */}
       <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-slate-900 border border-slate-800 w-full sm:w-fit overflow-x-auto max-w-full">
         <button
-          onClick={() => { setActiveTab('qr'); setScanStatus(null); }}
+          onClick={() => handleTabChange('qr')}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap shrink-0 ${
             activeTab === 'qr'
               ? 'bg-teal-500 text-slate-950 shadow-md shadow-teal-500/20'
@@ -211,7 +411,7 @@ export const ScanCenterView: React.FC = () => {
         </button>
 
         <button
-          onClick={() => { setActiveTab('barcode'); setScanStatus(null); }}
+          onClick={() => handleTabChange('barcode')}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap shrink-0 ${
             activeTab === 'barcode'
               ? 'bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20'
@@ -223,7 +423,7 @@ export const ScanCenterView: React.FC = () => {
         </button>
 
         <button
-          onClick={() => { setActiveTab('ocr'); setScanStatus(null); }}
+          onClick={() => handleTabChange('ocr')}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap shrink-0 ${
             activeTab === 'ocr'
               ? 'bg-indigo-500 text-white shadow-md shadow-indigo-500/20'
@@ -332,16 +532,38 @@ export const ScanCenterView: React.FC = () => {
                   <Barcode className="w-4 h-4 text-cyan-400" />
                   <h3 className="text-sm font-bold text-slate-100">1D Linear Barcode Scanner (Code128)</h3>
                 </div>
+                <button
+                  onClick={toggleCamera}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors ${
+                    cameraActive
+                      ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                      : 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 hover:bg-cyan-500/30'
+                  }`}
+                >
+                  <Camera className="w-3.5 h-3.5" />
+                  <span>{cameraActive ? 'Stop Camera' : 'Start Camera'}</span>
+                </button>
               </div>
 
-              <div className="relative aspect-video rounded-xl bg-slate-950 border border-slate-800 overflow-hidden flex flex-col items-center justify-center p-6 text-center space-y-2">
-                <Barcode className="w-16 h-16 text-cyan-500/60" />
-                <p className="text-xs text-slate-300 font-semibold">Warehouse Physical Parts Scanner</p>
-                <p className="text-[11px] text-slate-500 max-w-xs">
-                  Upload a scanned barcode image or click any registered spare part below to view stock levels and restock actions.
-                </p>
+              {/* Viewfinder Frame */}
+              <div className="relative aspect-video rounded-xl bg-slate-950 border border-slate-800 overflow-hidden flex items-center justify-center">
+                {cameraActive ? (
+                  <video ref={videoRef} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="text-center p-6 space-y-2">
+                    <Barcode className="w-16 h-16 text-cyan-500/60 mx-auto" />
+                    <p className="text-xs text-slate-300 font-semibold">Warehouse Physical Parts Scanner</p>
+                    <p className="text-[11px] text-slate-500 max-w-xs">
+                      Point camera at any 1D barcode or upload a tag image to view inventory stock levels.
+                    </p>
+                  </div>
+                )}
+
+                {/* Laser scan animation overlay */}
+                <div className="absolute inset-x-8 top-1/2 h-0.5 bg-cyan-400 shadow-[0_0_8px_#22d3ee] animate-pulse pointer-events-none" />
               </div>
 
+              {/* Upload Barcode Tag */}
               <div className="flex items-center justify-between pt-2">
                 <label className="cursor-pointer px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-slate-700 text-xs font-semibold flex items-center gap-2 transition-colors">
                   <Upload className="w-3.5 h-3.5" />
@@ -354,7 +576,7 @@ export const ScanCenterView: React.FC = () => {
                   />
                 </label>
                 {scanStatus && (
-                  <span className="text-xs font-mono text-cyan-300">{scanStatus}</span>
+                  <span className="text-xs font-mono text-cyan-300 animate-fade-in">{scanStatus}</span>
                 )}
               </div>
             </div>
