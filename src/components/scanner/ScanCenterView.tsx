@@ -21,6 +21,7 @@ export const ScanCenterView: React.FC = () => {
   const [scanStatus, setScanStatus] = useState<string | null>(null);
   const [isDecoding, setIsDecoding] = useState(false);
   const [cameraActive, setCameraActive] = useState(false);
+  const [showStuckWarning, setShowStuckWarning] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -106,6 +107,7 @@ export const ScanCenterView: React.FC = () => {
       streamRef.current = null;
     }
     setCameraActive(false);
+    setShowStuckWarning(false);
   }, []);
 
   // Clean up camera stream and animation frame on unmount
@@ -125,12 +127,19 @@ export const ScanCenterView: React.FC = () => {
   // Attach stream and run live decoding loop (jsQR for QR tab, ZXing BrowserMultiFormatReader for Barcode tab)
   useEffect(() => {
     if (!cameraActive) {
+      setShowStuckWarning(false);
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
         animationFrameRef.current = null;
       }
       return;
     }
+
+    // Reset stuck warning and start 6s countdown
+    setShowStuckWarning(false);
+    const stuckTimer = setTimeout(() => {
+      setShowStuckWarning(true);
+    }, 6000);
 
     const video = videoRef.current;
     const stream = streamRef.current;
@@ -151,13 +160,25 @@ export const ScanCenterView: React.FC = () => {
 
       if (currentVideo && canvas && currentVideo.readyState >= currentVideo.HAVE_CURRENT_DATA) {
         if (currentVideo.videoWidth > 0 && currentVideo.videoHeight > 0) {
-          canvas.width = currentVideo.videoWidth;
-          canvas.height = currentVideo.videoHeight;
+          // Speed optimization: downscale offscreen canvas (max 640px width) maintaining aspect ratio
+          const MAX_DECODE_WIDTH = 640;
+          const scale = Math.min(1, MAX_DECODE_WIDTH / currentVideo.videoWidth);
+          const targetWidth = Math.max(1, Math.round(currentVideo.videoWidth * scale));
+          const targetHeight = Math.max(1, Math.round(currentVideo.videoHeight * scale));
+
+          if (canvas.width !== targetWidth || canvas.height !== targetHeight) {
+            canvas.width = targetWidth;
+            canvas.height = targetHeight;
+          }
+
           const ctx = canvas.getContext('2d', { willReadFrequently: true });
           if (ctx) {
-            ctx.drawImage(currentVideo, 0, 0, canvas.width, canvas.height);
-
             if (activeTab === 'barcode') {
+              // Glare tolerance: grayscale + contrast normalization before ZXing decode
+              ctx.filter = 'grayscale(1) contrast(1.4)';
+              ctx.drawImage(currentVideo, 0, 0, targetWidth, targetHeight);
+              ctx.filter = 'none';
+
               // 1D Linear Barcode Decoding via ZXing BrowserMultiFormatReader
               if (zxingReaderRef.current) {
                 try {
@@ -174,7 +195,9 @@ export const ScanCenterView: React.FC = () => {
                       } catch (_) {}
                     }
 
-                    // Stop camera and scan loop
+                    // Stop camera, clear stuck warning, and process result
+                    clearTimeout(stuckTimer);
+                    setShowStuckWarning(false);
                     stopCamera();
 
                     // Process matched spare part or equipment
@@ -187,10 +210,12 @@ export const ScanCenterView: React.FC = () => {
                 }
               }
             } else {
-              // 2D QR Code Decoding via jsQR (with fallback to ZXing)
-              const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+              // Glare tolerance: jsQR inversionAttempts='attemptBoth' for inverted/glare QR contrast
+              ctx.filter = 'none';
+              ctx.drawImage(currentVideo, 0, 0, targetWidth, targetHeight);
+              const imageData = ctx.getImageData(0, 0, targetWidth, targetHeight);
               const qrCode = jsQR(imageData.data, imageData.width, imageData.height, {
-                inversionAttempts: 'dontInvert'
+                inversionAttempts: 'attemptBoth'
               });
 
               if (qrCode && qrCode.data && qrCode.data.trim()) {
@@ -205,7 +230,9 @@ export const ScanCenterView: React.FC = () => {
                   } catch (_) {}
                 }
 
-                // Stop camera and scan loop
+                // Stop camera, clear stuck warning, and process result
+                clearTimeout(stuckTimer);
+                setShowStuckWarning(false);
                 stopCamera();
 
                 // Process matched equipment or part
@@ -227,6 +254,7 @@ export const ScanCenterView: React.FC = () => {
 
     return () => {
       isScanning = false;
+      clearTimeout(stuckTimer);
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
         animationFrameRef.current = null;
@@ -454,7 +482,15 @@ export const ScanCenterView: React.FC = () => {
               {/* Viewfinder Frame */}
               <div className="relative aspect-video rounded-xl bg-slate-950 border border-slate-800 overflow-hidden flex items-center justify-center">
                 {cameraActive ? (
-                  <video ref={videoRef} className="w-full h-full object-cover" />
+                  <>
+                    <video ref={videoRef} className="w-full h-full object-cover" />
+                    {showStuckWarning && (
+                      <div className="absolute bottom-3 inset-x-3 z-10 flex items-center gap-2 p-2.5 rounded-lg bg-amber-950/90 border border-amber-500/50 text-amber-200 text-xs shadow-lg backdrop-blur animate-fade-in pointer-events-none">
+                        <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+                        <span>Having trouble? Move closer, reduce glare, or ensure the full QR code is visible.</span>
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <div className="text-center p-6 space-y-2">
                     <QrCode className="w-12 h-12 text-slate-700 mx-auto animate-pulse" />
@@ -548,6 +584,12 @@ export const ScanCenterView: React.FC = () => {
                         Align barcode horizontally to fill frame width
                       </span>
                     </div>
+                    {showStuckWarning && (
+                      <div className="absolute bottom-3 inset-x-3 z-10 flex items-center gap-2 p-2.5 rounded-lg bg-amber-950/90 border border-amber-500/50 text-amber-200 text-xs shadow-lg backdrop-blur animate-fade-in pointer-events-none">
+                        <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+                        <span>Having trouble? Hold steady, align the barcode horizontally across the full width, and avoid reflections.</span>
+                      </div>
+                    )}
                   </>
                 ) : (
                   <div className="text-center p-6 space-y-2">
