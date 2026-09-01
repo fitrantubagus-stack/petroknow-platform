@@ -160,11 +160,18 @@ export const ScanCenterView: React.FC = () => {
 
       if (currentVideo && canvas && currentVideo.readyState >= currentVideo.HAVE_CURRENT_DATA) {
         if (currentVideo.videoWidth > 0 && currentVideo.videoHeight > 0) {
-          // Speed optimization: downscale offscreen canvas (max 640px width) maintaining aspect ratio
-          const MAX_DECODE_WIDTH = 640;
-          const scale = Math.min(1, MAX_DECODE_WIDTH / currentVideo.videoWidth);
-          const targetWidth = Math.max(1, Math.round(currentVideo.videoWidth * scale));
-          const targetHeight = Math.max(1, Math.round(currentVideo.videoHeight * scale));
+          // Separate resolution strategy:
+          // QR tab uses 640px downscaling for fast decoding with error correction.
+          // Barcode tab uses native video resolution (up to 1280px+) to preserve pixel-level Code128 bar widths.
+          let targetWidth = currentVideo.videoWidth;
+          let targetHeight = currentVideo.videoHeight;
+
+          if (activeTab !== 'barcode') {
+            const MAX_DECODE_WIDTH = 640;
+            const scale = Math.min(1, MAX_DECODE_WIDTH / currentVideo.videoWidth);
+            targetWidth = Math.max(1, Math.round(currentVideo.videoWidth * scale));
+            targetHeight = Math.max(1, Math.round(currentVideo.videoHeight * scale));
+          }
 
           if (canvas.width !== targetWidth || canvas.height !== targetHeight) {
             canvas.width = targetWidth;
@@ -174,8 +181,8 @@ export const ScanCenterView: React.FC = () => {
           const ctx = canvas.getContext('2d', { willReadFrequently: true });
           if (ctx) {
             if (activeTab === 'barcode') {
-              // Glare tolerance: grayscale + contrast normalization before ZXing decode
-              ctx.filter = 'grayscale(1) contrast(1.4)';
+              // Glare tolerance: mild grayscale + contrast normalization (1.15) to keep bar edges sharp without blowout
+              ctx.filter = 'grayscale(1) contrast(1.15)';
               ctx.drawImage(currentVideo, 0, 0, targetWidth, targetHeight);
               ctx.filter = 'none';
 
