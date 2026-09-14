@@ -30,7 +30,7 @@ export const RetirementCampaignView: React.FC = () => {
     {
       topicTitle: '',
       category: 'Tacit Experience',
-      equipmentId: 'EQ-CMP-204',
+      equipmentId: equipmentList[0]?.id || 'GA-1201A',
       importance: 'Critical',
       notes: ''
     }
@@ -42,7 +42,7 @@ export const RetirementCampaignView: React.FC = () => {
       {
         topicTitle: '',
         category: 'Tacit Experience',
-        equipmentId: equipmentList[0]?.id || 'EQ-REC-101',
+        equipmentId: equipmentList[0]?.id || 'GA-1201A',
         importance: 'Critical',
         notes: ''
       }
@@ -97,7 +97,7 @@ export const RetirementCampaignView: React.FC = () => {
       {
         topicTitle: '',
         category: 'Tacit Experience',
-        equipmentId: 'EQ-CMP-204',
+        equipmentId: equipmentList[0]?.id || 'GA-1201A',
         importance: 'Critical',
         notes: ''
       }

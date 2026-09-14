@@ -137,7 +137,7 @@ export const Navbar: React.FC = () => {
                 type="text"
                 value={globalSearchQuery}
                 onChange={(e) => setGlobalSearchQuery(e.target.value)}
-                placeholder="Ask AI or search equipment (e.g., compressor vibration, EQ-CMP-204)..."
+                placeholder="Ask AI or search equipment (e.g., compressor vibration, GA-1201A)..."
                 className="w-full bg-slate-950/70 border border-slate-700/80 rounded-xl pl-10 pr-20 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500/50 transition-all font-sans"
               />
               <button
@@ -333,7 +333,7 @@ export const Navbar: React.FC = () => {
                 autoFocus
                 value={globalSearchQuery}
                 onChange={(e) => setGlobalSearchQuery(e.target.value)}
-                placeholder="Ask AI or search equipment (e.g. EQ-CMP-204)..."
+                placeholder="Ask AI or search equipment (e.g. GA-1201A)..."
                 className="w-full bg-slate-950 border border-slate-700/80 rounded-xl pl-10 pr-20 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500/50 transition-all font-sans"
               />
               <button

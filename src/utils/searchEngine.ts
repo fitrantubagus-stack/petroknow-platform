@@ -30,7 +30,7 @@ export interface DatasetQueryResult {
 
 /**
  * Lightweight heuristic intent-detection for greetings and self-explanation / meta questions
- * Supports both Indonesian and English natural language.
+ * Full English professional tone.
  */
 export function detectAssistantIntent(query: string): SystemIntentResult | null {
   if (!query || typeof query !== 'string') return null;
@@ -46,55 +46,48 @@ export function detectAssistantIntent(query: string): SystemIntentResult | null 
     'hi', 'hello', 'hey', 'halo', 'helo', 'howdy', 'hola', 'yo',
     'good morning', 'good afternoon', 'good evening', 'good day', 'greetings',
     'hi there', 'hello there', 'hey there', 'halo there',
-    'selamat pagi', 'selamat siang', 'selamat sore', 'selamat malam',
-    'hi petroknow', 'hello petroknow', 'hey petroknow', 'halo petroknow',
-    'pagi', 'siang', 'sore', 'malam'
+    'hi petroknow', 'hello petroknow', 'hey petroknow', 'halo petroknow'
   ]);
 
   if (greetingPhrases.has(cleaned)) {
     return {
       type: 'greeting',
-      response: "Halo! Saya Asisten AI PetroKnow untuk **PT Chandra Asri Pacific Tbk**. Saya telah disinkronkan secara 100% dengan dataset pabrik Cilegon (Datasheet Mekanikal, P&ID, Safety Interlocks SIS, Riwayat Maintenance 211 WO, serta OPL & Tacit Knowledge). Ada yang bisa saya bantu terkait prosedur operasional atau spesifikasi peralatan hari ini?"
+      response: "Hello! I am the PetroKnow AI Knowledge Assistant for PT Chandra Asri Pacific Tbk (Cilegon Petrochemical Complex). I am fully grounded in the official CALIBER 2026 plant dataset, including OEM Mechanical Datasheets, P&ID schematics, SIS Safety Interlock Matrices, 211 Maintenance Work Orders, and verified Veteran Tacit Lessons. How may I assist your engineering or operational inquiry today?"
     };
   }
 
-  // Regex check for greeting words with optional friendly address
-  const isPureGreeting = /^(hi|hello|hey|halo|howdy|greetings|selamat\s+(pagi|siang|sore|malam)|good\s+(morning|afternoon|evening|day))(\s+(there|all|team|assistant|petroknow|bot|ai|everyone))?$/i.test(cleaned);
+  const isPureGreeting = /^(hi|hello|hey|halo|howdy|greetings|good\s+(morning|afternoon|evening|day))(\s+(there|all|team|assistant|petroknow|bot|ai|everyone))?$/i.test(cleaned);
   if (isPureGreeting) {
     return {
       type: 'greeting',
-      response: "Halo! Saya Asisten AI PetroKnow untuk **PT Chandra Asri Pacific Tbk**. Saya telah disinkronkan secara 100% dengan dataset pabrik Cilegon (Datasheet Mekanikal, P&ID, Safety Interlocks SIS, Riwayat Maintenance 211 WO, serta OPL & Tacit Knowledge). Ada yang bisa saya bantu terkait prosedur operasional atau spesifikasi peralatan hari ini?"
+      response: "Hello! I am the PetroKnow AI Knowledge Assistant for PT Chandra Asri Pacific Tbk (Cilegon Petrochemical Complex). I am fully grounded in the official CALIBER 2026 plant dataset, including OEM Mechanical Datasheets, P&ID schematics, SIS Safety Interlock Matrices, 211 Maintenance Work Orders, and verified Veteran Tacit Lessons. How may I assist your engineering or operational inquiry today?"
     };
   }
 
-  // 2. Check for standalone help / question mark
-  if (/^(help|help\s+me|\?|need\s+help|bantuan|tolong|cara\s+pakai|how\s+to\s+use|menu)$/i.test(cleaned)) {
+  // 2. Check for help
+  if (/^(help|help\s+me|\?|need\s+help|how\s+to\s+use|menu)$/i.test(cleaned)) {
     return {
       type: 'self_explanation',
-      response: "PetroKnow adalah *Manufacturing Knowledge Hub* berbasis AI untuk PT Chandra Asri Pacific Tbk. Anda dapat menanyakan:\n- **Spesifikasi & Datasheet:** 'Berapa operating pressure GA-1201A?' atau 'Apa material casing YD-2301?'\n- **Safety Interlocks (ESD):** 'Berapa setpoint trip PSLL-1201?' atau 'Apa voting logic VSHH-4501?'\n- **Suku Cadang (BOM):** 'Berapa stok mechanical seal GA-1201A dan di mana lokasinya?'\n- **Riwayat Keandalan:** 'Berapa MTBF GA-1201A menurut history maintenance?'\n- **Prosedur & Tacit:** 'Bagaimana solusi mengatasi vapor lock pada pompa hexane?'"
+      response: "PetroKnow is an AI-powered Manufacturing Knowledge Hub for PT Chandra Asri Pacific Tbk. You can ask:\n- Equipment Specifications & Datasheets: 'What is the operating pressure of GA-1201A?' or 'What is the casing material of YD-2301?'\n- Safety Instrumented Interlocks (ESD): 'What is the trip setpoint for PSLL-1201?' or 'What is the voting logic for VSHH-4501?'\n- Spare Parts Inventory (BOM): 'What is the available stock of mechanical seals for GA-1201A and what is its warehouse bin location?'\n- Reliability Analytics: 'What is the MTBF of GA-1201A according to maintenance history?'\n- Procedures & Tacit Wisdom: 'How do I resolve vapor lock cavitation on the hexane pump?'"
     };
   }
 
-  // 3. Check for meta / self-explanation questions about the app
+  // 3. Check for meta questions about PetroKnow
   const metaPatterns = [
     /what\s+is\s+(this\s+)?(website|web\s+app|web|app|application|system|platform|tool|petroknow)/i,
     /what\s+(is|does)\s+petroknow(\s+do)?/i,
     /who\s+are\s+you/i,
     /what\s+(can|do)\s+you\s+do/i,
     /how\s+does\s+(this\s+)?(website|app|system|platform|petroknow)\s+work/i,
-    /apa\s+(itu|fungsi)\s+petroknow/i,
-    /kamu\s+siapa/i,
-    /siapa\s+kamu/i,
-    /apa\s+kegunaan\s+(website|aplikasi|platform)\s+ini/i,
-    /tentang\s+petroknow/i,
-    /apa\s+ini/i
+    /about\s+petroknow/i,
+    /what\s+is\s+this/i
   ];
 
   for (const pattern of metaPatterns) {
     if (pattern.test(cleaned)) {
       return {
         type: 'self_explanation',
-        response: "PetroKnow adalah platform terintegrasi untuk tantangan inovasi **CALIBER 2026 PT Chandra Asri Pacific Tbk (Case 1: Manufacturing Knowledge Hub)**. Sistem ini menyatukan ribuan halaman SOP teknis, lembar data mekanikal OEM, diagram P&ID, riwayat 211 work orders, dan kearifan tacit operator veteran menjadi sistem saraf operasional yang dapat ditelusuri (*100% cited & verified*)."
+        response: "PetroKnow is an integrated Manufacturing Knowledge Hub built for PT Chandra Asri Pacific Tbk - CALIBER 2026 Innovation Challenge (Case 1: Manufacturing Knowledge Hub). The platform unifies scattered SOPs, OEM mechanical datasheets, P&ID engineering drawings, 211 maintenance historical work orders, and retiring veteran tacit knowledge into a single traceable operational nervous system with zero hallucination."
       };
     }
   }
@@ -107,16 +100,13 @@ export function detectAssistantIntent(query: string): SystemIntentResult | null 
  */
 function tokenize(text: string): string[] {
   const stopwords = new Set([
-    // English
     'a', 'an', 'the', 'is', 'are', 'was', 'were', 'in', 'on', 'at', 'to', 'for',
     'of', 'with', 'by', 'from', 'about', 'into', 'through', 'during', 'before',
     'after', 'above', 'below', 'under', 'how', 'what', 'where', 'when', 'why',
     'which', 'who', 'whom', 'this', 'that', 'these', 'those', 'can', 'should',
     'could', 'would', 'do', 'does', 'did', 'having', 'be', 'been', 'being',
-    // Indonesian
     'yang', 'di', 'ke', 'dari', 'pada', 'untuk', 'adalah', 'ini', 'itu', 'dengan',
-    'dan', 'atau', 'bisa', 'sudah', 'ada', 'apa', 'berapa', 'bagaimana', 'dimana',
-    'siapa', 'apakah', 'tolong', 'mohon', 'nya', 'saja', 'saat', 'ketika', 'akan'
+    'dan', 'atau', 'bisa', 'sudah', 'ada', 'apa', 'berapa', 'bagaimana', 'dimana'
   ]);
 
   return text
@@ -127,13 +117,9 @@ function tokenize(text: string): string[] {
 }
 
 /**
- * High-precision grounding engine that resolves queries strictly against
- * the PT Chandra Asri Pacific Tbk - CALIBER 2026 dataset:
- * - Mechanical Engineering Datasheets
- * - Safety Instrumented System (SIS) / ESD Interlock Matrix
- * - Compatible Spare Parts BOM & Warehouse Storage Locations
- * - Equipment Reliability Analytics (211 Work Orders: MTBF, MTTR, Root Causes)
- * - P&ID and Plot Plan Drawing Cross-References
+ * High-precision grounding engine strictly resolving queries against
+ * PT Chandra Asri Pacific Tbk - CALIBER 2026 dataset in 100% clean English.
+ * NO asterisks (*) are used in the generated text.
  */
 export function resolveDatasetQuery(
   query: string,
@@ -153,7 +139,6 @@ export function resolveDatasetQuery(
 
   if (tagMatch) {
     const rawTag = tagMatch[0].toUpperCase().replace('_', '-');
-    // Normalize format e.g. PSLL1201 -> PSLL-1201
     const normalizedTag = rawTag.includes('-') 
       ? rawTag 
       : `${rawTag.slice(0, rawTag.length - 4)}-${rawTag.slice(rawTag.length - 4)}`;
@@ -168,19 +153,20 @@ export function resolveDatasetQuery(
         if (foundInterlock) {
           const docRef = eq.datasheetDocNo || 'DTS-CAL-SPEC';
           const answerText = 
-`### 🚨 Safety Instrumented Interlock: **${foundInterlock.tag}**
-**Terkait Peralatan:** [${eq.code}: ${eq.name}] • Area: ${eq.area}  
-**Sumber Verifikasi:** Dokumen \`${docRef}\` (Safety Instrumented System ESD Matrix)
+`SAFETY INSTRUMENTED INTERLOCK: ${foundInterlock.tag}
+Associated Equipment: ${eq.code} - ${eq.name} (Area: ${eq.area})
+Verification Source: Document ${docRef} (Safety Instrumented System ESD Matrix)
 
-- **Parameter yang Dimonitor:** ${foundInterlock.parameter}
-- **Ambang Batas Trip (Trip Setpoint):** **${foundInterlock.tripValue}**
-- **Voting Logic PLC:** \`${foundInterlock.votingLogic}\` (Safety Integrity Level: ${eq.silLevel || 'SIL-2'})
-- **Tindakan Otomatis Safeguard:** ${foundInterlock.action}
+- Monitored Parameter: ${foundInterlock.parameter}
+- Trip Setpoint: ${foundInterlock.tripValue}
+- Voting Logic: ${foundInterlock.votingLogic} (Integrity: ${eq.silLevel || 'SIL-2'})
+- Automated Safeguard Action: ${foundInterlock.action}
 
-> **Catatan Operasional Chandra Asri:** Interlock ini dikendalikan oleh SIS Triconex. Apabila alarm level 1 menyala sebelum mencapai trip value ini, operator wajib mengacu pada SOP penanganan deviasi untuk mencegah *plant shutdown* dan *flaring*.`;
+Operational Notice:
+This trip loop is executed by the Triconex SIS controller. If a pre-alarm level is triggered before reaching this trip setpoint, operators must consult standard deviation recovery procedures to avoid unplanned unit trip and flaring.`;
 
           return {
-            text: answerText,
+            text: answerText.replace(/\*/g, ''),
             matchScore: 99,
             confidenceStatus: 'verified',
             sources: [
@@ -211,23 +197,23 @@ export function resolveDatasetQuery(
     }
   }
 
-  // Also check equipment by colloquial aliases
+  // Colloquial aliases
   if (!matchedEq) {
-    if (qLower.includes('hexane pump') || qLower.includes('pompa hexane') || qLower.includes('torishima')) {
+    if (qLower.includes('hexane pump') || qLower.includes('feed pump') || qLower.includes('torishima')) {
       matchedEq = equipmentList.find(e => e.id === 'GA-1201A');
-    } else if (qLower.includes('pellet dryer') || qLower.includes('dryer') || qLower.includes('pengering') || qLower.includes('krauss-maffei')) {
+    } else if (qLower.includes('pellet dryer') || qLower.includes('fluid bed') || qLower.includes('dryer') || qLower.includes('krauss-maffei')) {
       matchedEq = equipmentList.find(e => e.id === 'YD-2301');
-    } else if (qLower.includes('bag filter') || qLower.includes('filter separator') || qLower.includes('mikropul')) {
+    } else if (qLower.includes('bag filter') || qLower.includes('dust collector') || qLower.includes('purge column') || qLower.includes('mikropul')) {
       matchedEq = equipmentList.find(e => e.id === 'DC-3401A');
-    } else if (qLower.includes('cycle gas') || qLower.includes('recycle gas') || qLower.includes('kompresor') || qLower.includes('compressor') || qLower.includes('dresser-rand')) {
+    } else if (qLower.includes('cycle gas') || qLower.includes('recycle gas') || qLower.includes('compressor') || qLower.includes('dresser-rand')) {
       matchedEq = equipmentList.find(e => e.id === 'KC-4501');
-    } else if (qLower.includes('solvent heater') || qLower.includes('heater') || qLower.includes('pemanas') || qLower.includes('koch')) {
+    } else if (qLower.includes('solvent heater') || qLower.includes('reaction loop heat') || qLower.includes('heat exchanger') || qLower.includes('koch')) {
       matchedEq = equipmentList.find(e => e.id === 'EA-5601');
-    } else if (qLower.includes('letdown') || qLower.includes('control valve') || qLower.includes('katup letdown') || qLower.includes('fisher')) {
+    } else if (qLower.includes('letdown valve') || qLower.includes('separator level') || qLower.includes('control valve') || qLower.includes('fisher')) {
       matchedEq = equipmentList.find(e => e.id === 'LV-6701');
-    } else if (qLower.includes('cooling tower') || qLower.includes('menara pendingin') || qLower.includes('cooling fan') || qLower.includes('marley')) {
+    } else if (qLower.includes('cooling tower') || qLower.includes('cell fan') || qLower.includes('marley')) {
       matchedEq = equipmentList.find(e => e.id === 'CT-7801');
-    } else if (qLower.includes('reflux drum') || qLower.includes('knock out') || qLower.includes('ko drum')) {
+    } else if (qLower.includes('reflux drum') || qLower.includes('knockout drum') || qLower.includes('ko drum') || qLower.includes('accumulator')) {
       matchedEq = equipmentList.find(e => e.id === 'FA-8901');
     }
   }
@@ -240,23 +226,23 @@ export function resolveDatasetQuery(
     const isInterlockQuery = qLower.includes('interlock') || qLower.includes('trip') || qLower.includes('setpoint') || qLower.includes('voting') || qLower.includes('esd') || qLower.includes('sis') || qLower.includes('alarm');
     if (isInterlockQuery && spec && spec.interlockSetpoints && spec.interlockSetpoints.length > 0) {
       const rows = spec.interlockSetpoints.map(il => 
-        `| **${il.tag}** | ${il.parameter} | **${il.tripValue}** | \`${il.votingLogic}\` | ${il.action} |`
+        `- Tag ${il.tag}: ${il.parameter} | Trip Setpoint: ${il.tripValue} | Voting: ${il.votingLogic} | Action: ${il.action}`
       ).join('\n');
 
       const answerText = 
-`### 🚨 Matriks Safety Interlocks (ESD): **${matchedEq.code} - ${matchedEq.name}**
-**Functional Location:** \`${matchedEq.functionalLoc || matchedEq.area}\`  
-**Safety Integrity:** \`${matchedEq.silLevel || 'SIL-2'}\` • Loop: \`${matchedEq.interlockSeq || 'ESD-SYS'}\`  
-**Dokumen Referensi:** \`${docRef}\`
+`SAFETY INSTRUMENTED SYSTEM (SIS) INTERLOCK MATRIX: ${matchedEq.code} - ${matchedEq.name}
+Functional Location: ${matchedEq.functionalLoc || matchedEq.area}
+Safety Integrity Level: ${matchedEq.silLevel || 'SIL-2'} • Sequence: ${matchedEq.interlockSeq || 'ESD-SYS'}
+Document Reference: ${docRef}
 
-| Tag Sensor | Monitored Parameter | Trip Setpoint | Voting Logic | Automated Safeguard Action |
-| :--- | :--- | :--- | :--- | :--- |
+Configured Trip Loops:
 ${rows}
 
-*Catatan: Parameter di atas telah terkonfigurasi pada DCS Honeywell Experion & Triconex SIS PT Chandra Asri Pacific Tbk.*`;
+Operational Context:
+All interlock parameters are continuously monitored and logged into Honeywell Experion DCS and Triconex SIS controllers at the Cilegon Petrochemical Plant.`;
 
       return {
-        text: answerText,
+        text: answerText.replace(/\*/g, ''),
         matchScore: 98,
         confidenceStatus: 'verified',
         sources: [
@@ -276,19 +262,20 @@ ${rows}
     const isPressureQuery = qLower.includes('pressure') || qLower.includes('tekanan') || qLower.includes('barg') || qLower.includes('bar');
     if (isPressureQuery && spec) {
       const answerText = 
-`### ⚙️ Kondisi Tekanan: **${matchedEq.code} - ${matchedEq.name}**
-**Dokumen Referensi:** \`${docRef}\` (PT Chandra Asri Mechanical Datasheet)
+`PRESSURE SPECIFICATIONS: ${matchedEq.code} - ${matchedEq.name}
+Reference Document: ${docRef} (PT Chandra Asri Mechanical Datasheet)
 
-- **Tekanan Operasi Normal:** **${spec.operatingPressure}**
-- **Tekanan Desain Maksimum:** **${spec.designPressure}**
-- **Head / Tekanan Diferensial:** ${spec.headOrDiffPressure}
-- **Rating Flange:** ${spec.flangeRating}
-- **Fluida:** ${spec.serviceFluid}
+- Normal Operating Pressure: ${spec.operatingPressure}
+- Maximum Design Pressure: ${spec.designPressure}
+- Differential Pressure / Head: ${spec.headOrDiffPressure}
+- Flange Rating & Standard: ${spec.flangeRating}
+- Process Fluid Handled: ${spec.serviceFluid}
 
-> **Batas Aman:** Tekanan operasi aktual dipantau oleh transmitter DCS. Kenaikan atau penurunan abnormal akan memicu interlock sequence \`${matchedEq.interlockSeq || 'SYS'}\`.`;
+Operational Limit:
+Operating pressure is tracked via field transmitters. Any excursion beyond design thresholds activates interlock sequence ${matchedEq.interlockSeq || 'SYS'}.`;
 
       return {
-        text: answerText,
+        text: answerText.replace(/\*/g, ''),
         matchScore: 97,
         confidenceStatus: 'verified',
         sources: [
@@ -305,21 +292,22 @@ ${rows}
     }
 
     // C. Temperature inquiries
-    const isTempQuery = qLower.includes('temp') || qLower.includes('suhu') || qLower.includes('temperatur') || qLower.includes('°c');
+    const isTempQuery = qLower.includes('temp') || qLower.includes('temperature') || qLower.includes('suhu') || qLower.includes('°c');
     if (isTempQuery && spec) {
       const answerText = 
-`### 🌡️ Kondisi Temperatur: **${matchedEq.code} - ${matchedEq.name}**
-**Dokumen Referensi:** \`${docRef}\` (PT Chandra Asri Mechanical Datasheet)
+`TEMPERATURE SPECIFICATIONS: ${matchedEq.code} - ${matchedEq.name}
+Reference Document: ${docRef} (PT Chandra Asri Mechanical Datasheet)
 
-- **Suhu Operasi Normal:** **${spec.operatingTemp}**
-- **Suhu Desain Maksimum:** **${spec.designTemp}**
-- **Metalurgi Body/Casing:** ${spec.mocBody}
-- **Metalurgi Trim/Rotor:** ${spec.mocTrim}
+- Normal Operating Temperature: ${spec.operatingTemp}
+- Maximum Design Temperature: ${spec.designTemp}
+- Body / Shell Metallurgy: ${spec.mocBody}
+- Internal Trim / Rotor Metallurgy: ${spec.mocTrim}
 
-> **Perhatian Operasional:** Temperatur di atas ambang batas desain dapat menyebabkan degradasi pelumasan dan degradasi mechanical seal sesuai riwayat perawatan Chandra Asri.`;
+Operational Limit:
+Temperature excursions above design ratings result in accelerated lubricant oxidation and mechanical seal degradation based on Chandra Asri reliability records.`;
 
       return {
-        text: answerText,
+        text: answerText.replace(/\*/g, ''),
         matchScore: 97,
         confidenceStatus: 'verified',
         sources: [
@@ -336,21 +324,21 @@ ${rows}
     }
 
     // D. Metallurgy / Material of Construction (MOC) inquiries
-    const isMaterialQuery = qLower.includes('material') || qLower.includes('moc') || qLower.includes('metallurgy') || qLower.includes('casing') || qLower.includes('trim') || qLower.includes('baja') || qLower.includes('stainless');
+    const isMaterialQuery = qLower.includes('material') || qLower.includes('moc') || qLower.includes('metallurgy') || qLower.includes('casing') || qLower.includes('trim') || qLower.includes('stainless');
     if (isMaterialQuery && spec) {
       const answerText = 
-`### 🔬 Material & Metalurgi Konstruksi (MOC): **${matchedEq.code} - ${matchedEq.name}**
-**Pabrikan:** ${spec.manufacturer} (${spec.modelType})  
-**Dokumen Referensi:** \`${docRef}\`
+`MATERIALS OF CONSTRUCTION (MOC): ${matchedEq.code} - ${matchedEq.name}
+Manufacturer: ${spec.manufacturer} (${spec.modelType})
+Reference Document: ${docRef}
 
-- **Material Casing / Body:** **${spec.mocBody}**
-- **Material Internal Trim / Rotor:** **${spec.mocTrim}**
-- **Piping Plan Mechanical Seal:** ${spec.mechanicalSealPlan}
-- **Rating Flange Standar:** ${spec.flangeRating}
-- **Karakteristik Fluida:** ${spec.serviceFluid}`;
+- Casing / Pressure Boundary: ${spec.mocBody}
+- Internal Trim / Rotor Components: ${spec.mocTrim}
+- Mechanical Seal Piping Arrangement: ${spec.mechanicalSealPlan}
+- Flange Standards: ${spec.flangeRating}
+- Process Fluid: ${spec.serviceFluid}`;
 
       return {
-        text: answerText,
+        text: answerText.replace(/\*/g, ''),
         matchScore: 96,
         confidenceStatus: 'verified',
         sources: [
@@ -367,47 +355,48 @@ ${rows}
     }
 
     // E. Reliability & Maintenance History (211 Work Orders) inquiries
-    const isReliabilityQuery = qLower.includes('mtbf') || qLower.includes('mttr') || qLower.includes('reliability') || qLower.includes('work order') || qLower.includes('kerusakan') || qLower.includes('failure') || qLower.includes('history') || qLower.includes('riwayat');
+    const isReliabilityQuery = qLower.includes('mtbf') || qLower.includes('mttr') || qLower.includes('reliability') || qLower.includes('work order') || qLower.includes('failure') || qLower.includes('history') || qLower.includes('breakdown');
     if (isReliabilityQuery) {
       const failureModesMap: Record<string, string> = {
-        'GA-1201A': '1) Plan 11 flush orifice fouling & vapor lock (38%), 2) Outboard bearing wear akibat kavitasi (29%), 3) Strainer STR-1201 clogged (18%)',
-        'YD-2301': '1) Steam rotary joint leak Kadant (42%), 2) Deck screen mesh clogging (31%), 3) Agglomerate high moisture (17%)',
-        'DC-3401A': '1) Pulse jet solenoid valve failure (45%), 2) PTFE bag filter tear (33%), 3) Rotary airlock jamming (15%)',
-        'KC-4501': '1) Suction valve plate flutter & fatigue (40%), 2) Piston rod packing seal leak (35%), 3) Lube oil pressure dip (15%)',
-        'EA-5601': '1) Polymer fouling on tube side (52%), 2) Channel head gasket leak (28%), 3) Tube sheet erosion (12%)',
-        'LV-6701': '1) Ceramic trim erosion under high DP (48%), 2) DVC6200 positioner feedback drift (32%), 3) Actuator diaphragm leak (14%)',
-        'CT-7801': '1) Gearbox intermediate shaft bearing fatigue (46%), 2) FRP blade pitch loosening (28%), 3) Drive shaft coupling misalignment (18%)',
-        'FA-8901': '1) Heavy hydrocarbon sludge accumulation (44%), 2) Immersion heater element burnout (32%), 3) Demister pad DP fouling (16%)'
+        'GA-1201A': '1) Plan 11 flush orifice fouling and vapor lock (38%), 2) Outboard ball bearing wear due to cavitation vibration (29%), 3) Suction strainer STR-1201 fouling (18%)',
+        'YD-2301': '1) Steam rotary joint seal leakage Kadant (42%), 2) Deck screen mesh fines accumulation (31%), 3) Agglomerate high moisture formation (17%)',
+        'DC-3401A': '1) Pulse-jet solenoid valve diaphragm failure (45%), 2) PTFE needle felt filter bag abrasion tear (33%), 3) Rotary airlock feeder jamming (15%)',
+        'KC-4501': '1) Suction valve plate flutter and fatigue cracking (40%), 2) Piston rod packing seal buffer leakage (35%), 3) Lube oil header pressure dip (15%)',
+        'EA-5601': '1) Polymer fouling on internal tube walls (52%), 2) Channel head gasket perimeter leakage (28%), 3) Tube sheet inlet erosion (12%)',
+        'LV-6701': '1) Ceramic trim erosion under high differential pressure (48%), 2) Fisher DVC6200 positioner feedback drift (32%), 3) Actuator diaphragm seal leakage (14%)',
+        'CT-7801': '1) Gearbox intermediate shaft bearing fatigue (46%), 2) FRP blade pitch clamp bolt loosening (28%), 3) Drive shaft flexible coupling misalignment (18%)',
+        'FA-8901': '1) Heavy hydrocarbon sludge settling (44%), 2) Immersion electric heater element burnout (32%), 3) Demister wire mesh differential fouling (16%)'
       };
 
       const mtbfMap: Record<string, { mtbf: string; mttr: string; prevented: string }> = {
-        'GA-1201A': { mtbf: '42.4 Hari', mttr: '4.2 Jam', prevented: '340+ Jam' },
-        'YD-2301': { mtbf: '38.6 Hari', mttr: '5.8 Jam', prevented: '280+ Jam' },
-        'DC-3401A': { mtbf: '45.1 Hari', mttr: '3.4 Jam', prevented: '210+ Jam' },
-        'KC-4501': { mtbf: '31.2 Hari', mttr: '7.6 Jam', prevented: '520+ Jam' },
-        'EA-5601': { mtbf: '55.0 Hari', mttr: '6.2 Jam', prevented: '190+ Jam' },
-        'LV-6701': { mtbf: '48.3 Hari', mttr: '2.8 Jam', prevented: '160+ Jam' },
-        'CT-7801': { mtbf: '62.5 Hari', mttr: '4.5 Jam', prevented: '140+ Jam' },
-        'FA-8901': { mtbf: '74.0 Hari', mttr: '8.1 Jam', prevented: '310+ Jam' },
+        'GA-1201A': { mtbf: '42.4 Days', mttr: '4.2 Hours', prevented: '340+ Hours' },
+        'YD-2301': { mtbf: '38.6 Days', mttr: '5.8 Hours', prevented: '280+ Hours' },
+        'DC-3401A': { mtbf: '45.1 Days', mttr: '3.4 Hours', prevented: '210+ Hours' },
+        'KC-4501': { mtbf: '31.2 Days', mttr: '7.6 Hours', prevented: '520+ Hours' },
+        'EA-5601': { mtbf: '55.0 Days', mttr: '6.2 Hours', prevented: '190+ Hours' },
+        'LV-6701': { mtbf: '48.3 Days', mttr: '2.8 Hours', prevented: '160+ Hours' },
+        'CT-7801': { mtbf: '62.5 Days', mttr: '4.5 Hours', prevented: '140+ Hours' },
+        'FA-8901': { mtbf: '74.0 Days', mttr: '8.1 Hours', prevented: '310+ Hours' },
       };
 
-      const metrics = mtbfMap[matchedEq.id] || { mtbf: '45.0 Hari', mttr: '4.5 Jam', prevented: '250+ Jam' };
-      const modes = failureModesMap[matchedEq.id] || 'Mechanical wear, gasket leakage, electrical sensor drift';
+      const metrics = mtbfMap[matchedEq.id] || { mtbf: '45.0 Days', mttr: '4.5 Hours', prevented: '250+ Hours' };
+      const modes = failureModesMap[matchedEq.id] || 'Mechanical fatigue, gasket leakage, electrical sensor drift';
 
       const answerText = 
-`### 📊 Analisis Keandalan & Riwayat Maintenance: **${matchedEq.code} - ${matchedEq.name}**
-**Sumber Data:** \`Maintenance History (All Equipment).xlsx\` (211 Work Orders PT Chandra Asri)
+`RELIABILITY ANALYTICS & MAINTENANCE HISTORY: ${matchedEq.code} - ${matchedEq.name}
+Data Source: Maintenance History (All Equipment).xlsx (211 Verified Work Orders)
 
-- **MTBF (Mean Time Between Failures):** **${metrics.mtbf}** (Target Pabrik: > 35 Hari)
-- **MTTR (Mean Time To Repair):** **${metrics.mttr}**
-- **Estimasi Downtime Tercegah:** **${metrics.prevented}**
-- **Moda Kegagalan Dominan Teridentifikasi:**
+- MTBF (Mean Time Between Failures): ${metrics.mtbf} (Plant Benchmark: > 35 Days)
+- MTTR (Mean Time To Repair): ${metrics.mttr}
+- Cumulative Downtime Prevented: ${metrics.prevented}
+- Dominant Historical Failure Modes:
   ${modes}
 
-> **Pemanfaatan Tacit Knowledge:** Integrasi PetroKnow berhasil menurunkan waktu diagnosa teknisi lapangan hingga 77% dengan menghubungkan catatan tacit veteran langsung ke tag peralatan ini.`;
+Veteran Tacit Integration:
+Field diagnosis time has been reduced by 77% by linking veteran one-point lessons (OPLs) directly to this equipment node in the PetroKnow hub.`;
 
       return {
-        text: answerText,
+        text: answerText.replace(/\*/g, ''),
         matchScore: 98,
         confidenceStatus: 'verified',
         sources: [
@@ -423,32 +412,32 @@ ${rows}
       };
     }
 
-    // F. General Datasheet & Specs inquiry (or default when equipment is asked)
-    const isGeneralSpecQuery = qLower.includes('spesifikasi') || qLower.includes('datasheet') || qLower.includes('spek') || qLower.includes('detail') || qLower.includes('pabrikan') || qLower.includes('kapasitas') || qLower.includes('capacity') || qLower.includes('motor') || qLower.includes('apa');
-    if (spec && (isGeneralSpecQuery || qLower.length < 25)) {
+    // F. General Datasheet & Specs inquiry
+    const isGeneralSpecQuery = qLower.includes('spec') || qLower.includes('datasheet') || qLower.includes('detail') || qLower.includes('manufacturer') || qLower.includes('capacity') || qLower.includes('motor') || qLower.includes('what');
+    if (spec && (isGeneralSpecQuery || qLower.length < 30)) {
       const answerText = 
-`### 📋 Lembar Spesifikasi Teknis: **${matchedEq.code} - ${matchedEq.name}**
-**Pabrikan & Tipe:** ${spec.manufacturer} — ${spec.modelType}  
-**Area / Lokasi Pabrik:** ${matchedEq.area} (\`${matchedEq.functionalLoc || 'LLDPE Unit'}\`)  
-**Dokumen Referensi:** \`${docRef}\` • P&ID: \`${spec.pidDocNo}\` • Plot Plan: \`${spec.plotPlanDocNo}\`
+`TECHNICAL ENGINEERING DATASHEET: ${matchedEq.code} - ${matchedEq.name}
+Manufacturer & Model: ${spec.manufacturer} — ${spec.modelType}
+Plant Location: ${matchedEq.area} (${matchedEq.functionalLoc || 'LLDPE Complex'})
+Document Reference: ${docRef} • P&ID: ${spec.pidDocNo} • Plot Plan: ${spec.plotPlanDocNo}
 
-#### 1. Kondisi Proses & Operasi:
-- **Service Fluid:** ${spec.serviceFluid}
-- **Kapasitas Terukur:** **${spec.capacityRated}** (${spec.headOrDiffPressure})
-- **Tekanan (Operasi / Desain):** **${spec.operatingPressure}** / **${spec.designPressure}**
-- **Temperatur (Operasi / Desain):** **${spec.operatingTemp}** / **${spec.designTemp}**
+1. Process & Operating Conditions:
+- Service Fluid: ${spec.serviceFluid}
+- Rated Capacity: ${spec.capacityRated} (${spec.headOrDiffPressure})
+- Pressure (Operating / Design): ${spec.operatingPressure} / ${spec.designPressure}
+- Temperature (Operating / Design): ${spec.operatingTemp} / ${spec.designTemp}
 
-#### 2. Spesifikasi Mekanikal & Kelistrikan:
-- **Material Casing / Trim:** ${spec.mocBody} / ${spec.mocTrim}
-- **Piping Plan Seal:** ${spec.mechanicalSealPlan}
-- **Motor Penggerak:** ${spec.motorPowerKw} @ ${spec.motorVoltage}
-- **Standar Flange:** ${spec.flangeRating}
-- **Level Integritas Keselamatan:** \`${matchedEq.silLevel || 'SIL-2'}\` (Interlock: \`${matchedEq.interlockSeq || 'ESD'}\`)
+2. Mechanical & Electrical Specifications:
+- Metallurgy (Casing / Trim): ${spec.mocBody} / ${spec.mocTrim}
+- Mechanical Seal Plan: ${spec.mechanicalSealPlan}
+- Electric Motor Driver: ${spec.motorPowerKw} @ ${spec.motorVoltage}
+- Flange Standards: ${spec.flangeRating}
+- Safety Integrity: ${matchedEq.silLevel || 'SIL-2'} (Sequence: ${matchedEq.interlockSeq || 'ESD'})
 
-> *Semua data di atas diambil langsung dari paket engineering resmi PT Chandra Asri Pacific Tbk untuk tantangan CALIBER 2026.*`;
+All specifications extracted directly from official PT Chandra Asri Pacific Tbk engineering packages for CALIBER 2026.`;
 
       return {
-        text: answerText,
+        text: answerText.replace(/\*/g, ''),
         matchScore: 98,
         confidenceStatus: 'verified',
         sources: [
@@ -483,8 +472,7 @@ ${rows}
   if (partMatch) {
     const rawPartNo = partMatch[0].toUpperCase().replace(/_/g, '-');
     matchedPart = spareParts.find(p => p.partNumber.toUpperCase() === rawPartNo);
-  } else if (qLower.includes('spare part') || qLower.includes('suku cadang') || qLower.includes('stok') || qLower.includes('gudang') || qLower.includes('warehouse')) {
-    // Look for parts compatible with matchedEq or mentioned keywords
+  } else if (qLower.includes('spare part') || qLower.includes('stock') || qLower.includes('warehouse') || qLower.includes('bin location')) {
     if (matchedEq) {
       matchedPart = spareParts.find(p => p.compatibleEquipmentIds.includes(matchedEq!.id));
     } else {
@@ -495,19 +483,19 @@ ${rows}
   if (matchedPart) {
     const isLow = matchedPart.currentStock <= matchedPart.minThreshold;
     const answerText = 
-`### 📦 Ketersediaan Suku Cadang: **${matchedPart.name}**
-**Part Number:** \`${matchedPart.partNumber}\` • Kategori: \`${matchedPart.category}\`
+`SPARE PART INVENTORY STATUS: ${matchedPart.name}
+Part Number: ${matchedPart.partNumber} • Category: ${matchedPart.category}
 
-- **Jumlah Stok Tersedia:** **${matchedPart.currentStock} ${matchedPart.unit}** ${isLow ? '⚠️ *(Di Bawah Ambang Batas Minimum!)*' : '✅ *(Stok Aman)*'}
-- **Ambang Batas Minimum:** ${matchedPart.minThreshold} ${matchedPart.unit}
-- **Lokasi Penyimpanan Gudang:** **${matchedPart.binLocation}**
-- **Lead Time Pemesanan:** ${matchedPart.leadTimeDays} Hari
-- **Estimasi Biaya Satuan:** $${matchedPart.costUsd} USD
-- **Peralatan Kompatibel:** ${matchedPart.compatibleEquipmentIds.join(', ')}
-- **Spesifikasi Material:** ${matchedPart.specifications}`;
+- Stock Level Available: ${matchedPart.currentStock} ${matchedPart.unit} ${isLow ? '(WARNING: Below Minimum Safety Threshold!)' : '(Status: Stock Normal)'}
+- Minimum Threshold: ${matchedPart.minThreshold} ${matchedPart.unit}
+- Warehouse Storage Bin Location: ${matchedPart.binLocation}
+- Procurement Lead Time: ${matchedPart.leadTimeDays} Days
+- Unit Replacement Cost: $${matchedPart.costUsd} USD
+- Compatible Equipment Units: ${matchedPart.compatibleEquipmentIds.join(', ')}
+- Technical Material Specification: ${matchedPart.specifications}`;
 
     return {
-      text: answerText,
+      text: answerText.replace(/\*/g, ''),
       matchScore: 97,
       confidenceStatus: 'verified',
       sources: [
@@ -534,20 +522,18 @@ ${rows}
 
     if (matchedDoc) {
       const answerText = 
-`### 📄 Ringkasan Dokumen Teknik: **${matchedDoc.docNumber}**
-**Judul:** ${matchedDoc.title}  
-**Kategori:** ${matchedDoc.category} • Format: ${matchedDoc.fileType} (${matchedDoc.fileSize})  
-**Status Indeks:** \`${matchedDoc.status}\` (Terverifikasi dalam Sistem PetroKnow)
+`TECHNICAL DOCUMENT RECORD: ${matchedDoc.docNumber}
+Title: ${matchedDoc.title}
+Category: ${matchedDoc.category} • Format: ${matchedDoc.fileType} (${matchedDoc.fileSize})
+Index Status: ${matchedDoc.status} (Verified in PetroKnow Knowledge Repository)
 
-#### Ringkasan Isi / Ekstraksi OCR:
-\`\`\`text
-${matchedDoc.extractedSnippet || 'Dokumen teknik terverifikasi dari fasilitas Chandra Asri Cilegon.'}
-\`\`\`
+Extracted Technical Content:
+${matchedDoc.extractedSnippet || 'Verified engineering drawing / document from Chandra Asri Cilegon Plant.'}
 
-> Dokumen lengkap dapat dibuka langsung melalui menu **Document Library** atau modal detail dokumen.`;
+The complete document can be inspected directly in Document Library or through the document viewer modal.`;
 
       return {
-        text: answerText,
+        text: answerText.replace(/\*/g, ''),
         matchScore: 99,
         confidenceStatus: 'verified',
         sources: [
@@ -564,12 +550,11 @@ ${matchedDoc.extractedSnippet || 'Dokumen teknik terverifikasi dari fasilitas Ch
     }
   }
 
-  // No direct technical schema match found -> Hand off to standard SOP/tacit search
   return null;
 }
 
 /**
- * Real search & scoring function against knowledge base
+ * Search & scoring function against SOP & tacit knowledge base
  */
 export function searchKnowledgeBase(
   query: string,
@@ -584,7 +569,6 @@ export function searchKnowledgeBase(
 
   if (queryTokens.length === 0 && queryLower.length < 3) return [];
 
-  // Check if any equipment code was explicitly asked (e.g., "GA-1201A", "YD-2301", "compressor")
   const matchedEquipmentCodes: string[] = [];
   equipmentList.forEach(eq => {
     const eqCode = eq.code.toLowerCase();
@@ -597,7 +581,6 @@ export function searchKnowledgeBase(
   const results: SearchMatchResult[] = [];
 
   for (const entry of entries) {
-    // If not approved and not including pending, skip
     if (entry.status !== 'verified' && !includePending) {
       continue;
     }
@@ -610,41 +593,31 @@ export function searchKnowledgeBase(
     const contentLower = entry.content.toLowerCase();
     const tagsLower = entry.tags.map(t => t.toLowerCase());
 
-    // 1. Direct equipment ID link bonus
     if (matchedEquipmentCodes.some(code => entry.linkedEquipmentIds.includes(code))) {
       score += 35;
       matchedKeywords.push('Equipment Match');
     }
 
-    // 2. Exact phrase bonus in title
     if (titleLower.includes(queryLower)) {
       score += 45;
       matchedKeywords.push('Title Exact Match');
     }
 
-    // 3. Keyword token matching
     for (const token of queryTokens) {
       let tokenHit = false;
 
-      // Title match (high weight)
       if (titleLower.includes(token)) {
         score += 18;
         tokenHit = true;
       }
-
-      // Tag match (high weight)
       if (tagsLower.some(tag => tag.includes(token))) {
         score += 15;
         tokenHit = true;
       }
-
-      // Situation match (medium weight)
       if (situationLower.includes(token)) {
         score += 10;
         tokenHit = true;
       }
-
-      // Content match (regular weight)
       if (contentLower.includes(token)) {
         score += 6;
         tokenHit = true;
@@ -655,7 +628,6 @@ export function searchKnowledgeBase(
       }
     }
 
-    // Key steps matching
     if (entry.keySteps && entry.keySteps.length > 0) {
       for (const step of entry.keySteps) {
         const stepLower = step.toLowerCase();
@@ -667,10 +639,8 @@ export function searchKnowledgeBase(
       }
     }
 
-    // Cap score at 100
     const finalScore = Math.min(100, Math.round(score));
 
-    // Threshold to be considered relevant
     if (finalScore >= 18) {
       let snippet = entry.situation;
       if (entry.content) {
@@ -704,6 +674,5 @@ export function searchKnowledgeBase(
     }
   }
 
-  // Sort by highest score first
   return results.sort((a, b) => b.score - a.score);
 }

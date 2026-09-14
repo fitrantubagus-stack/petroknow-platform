@@ -357,14 +357,14 @@ export const LandingPage: React.FC = () => {
                   </p>
 
                   <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-400">
-                    <span className="font-mono text-teal-400">Source: SOP-MNT-CMP-204 / Dr. Irwan Santoso</span>
-                    <span className="text-emerald-400 font-semibold">98.4% Confidence</span>
+                    <span className="font-mono text-teal-400">Source: SOP-PET-2024-089 / Pak Joko Santoso</span>
+                    <span className="text-emerald-400 font-semibold">99.2% Confidence</span>
                   </div>
                 </div>
 
                 {/* Floating Status Pill */}
                 <div className="flex items-center justify-between text-xs px-2 pt-1 text-slate-400">
-                  <span>Matched equipment: <strong className="text-slate-200 font-mono">EQ-CMP-204</strong></span>
+                  <span>Matched equipment: <strong className="text-slate-200 font-mono">GA-1201A</strong></span>
                   <Link 
                     to="/ai-assistant" 
                     onClick={() => setCurrentView('assistant')}

@@ -140,7 +140,7 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | null>(null);
 
-const STORAGE_KEY = 'petroknow_v1_app_state';
+const STORAGE_KEY = 'petroknow_caliber_2026_v5_live';
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Load saved state or defaults
@@ -158,15 +158,36 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
   const [globalSearchQuery, setGlobalSearchQuery] = useState<string>('');
 
-  // Collections
+  // Collections with validation guards against stale localStorage
   const [knowledgeEntries, setKnowledgeEntries] = useState<KnowledgeEntry[]>(() => {
-    const saved = localStorage.getItem(`${STORAGE_KEY}_kb`);
-    return saved ? JSON.parse(saved) : INITIAL_KNOWLEDGE_ENTRIES;
+    try {
+      const saved = localStorage.getItem(`${STORAGE_KEY}_kb`);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.some(k => k.linkedEquipmentIds.includes('GA-1201A') || k.id.includes('GA-1201A'))) {
+          return parsed;
+        }
+      }
+    } catch (e) {}
+    return INITIAL_KNOWLEDGE_ENTRIES;
   });
 
   const [equipmentList, setEquipmentList] = useState<EquipmentNode[]>(() => {
-    const saved = localStorage.getItem(`${STORAGE_KEY}_eq`);
-    return saved ? JSON.parse(saved) : INITIAL_EQUIPMENT;
+    try {
+      // Clear legacy mock keys from browser
+      localStorage.removeItem('petroknow_v1_app_state_eq');
+      localStorage.removeItem('petroknow_v1_app_state_kb');
+      localStorage.removeItem('petroknow_v1_app_state_docs');
+      
+      const saved = localStorage.getItem(`${STORAGE_KEY}_eq`);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.some(e => e.id === 'GA-1201A') && !parsed.some(e => e.id === 'EQ-CMP-204')) {
+          return parsed;
+        }
+      }
+    } catch (e) {}
+    return INITIAL_EQUIPMENT;
   });
 
   const [spareParts, setSpareParts] = useState<SparePart[]>(() => {
@@ -175,8 +196,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   });
 
   const [documents, setDocuments] = useState<DocumentItem[]>(() => {
-    const saved = localStorage.getItem(`${STORAGE_KEY}_docs`);
-    return saved ? JSON.parse(saved) : INITIAL_DOCUMENTS;
+    try {
+      const saved = localStorage.getItem(`${STORAGE_KEY}_docs`);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length >= 35) {
+          return parsed;
+        }
+      }
+    } catch (e) {}
+    return INITIAL_DOCUMENTS;
   });
 
   const [knowledgeGaps, setKnowledgeGaps] = useState<KnowledgeGap[]>(() => {
@@ -702,14 +731,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (entry.status === 'pending') confidenceStatus = 'pending';
       if (matchScore < 45) confidenceStatus = 'unverified';
 
-      // Build rich cited response
-      let answerText = `**${entry.title}**\n\n${entry.situation}\n\n`;
+      // Build rich cited response without asterisks
+      let answerText = `${entry.title}\n\n${entry.situation}\n\n`;
 
       if (entry.keySteps && entry.keySteps.length > 0) {
-        answerText += `**Standard Execution Steps:**\n` + entry.keySteps.map((s, i) => `${i + 1}. ${s}`).join('\n') + '\n\n';
+        answerText += `Standard Operating Steps:\n` + entry.keySteps.map((s, i) => `${i + 1}. ${s}`).join('\n') + '\n\n';
       }
 
-      answerText += `*Source verified by ${entry.verifier || entry.author} (Last verified: ${entry.lastVerifiedDate || entry.submitDate}).*`;
+      answerText += `Source verified by ${entry.verifier || entry.author} (Last verified: ${entry.lastVerifiedDate || entry.submitDate}).`;
+      answerText = answerText.replace(/\*/g, '');
 
       const aiMsg: ChatMessage = {
         id: assistantMsgId,
@@ -735,7 +765,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const noMatchMsg: ChatMessage = {
         id: assistantMsgId,
         sender: 'assistant',
-        text: `No verified standard operating procedure or tacit wisdom matched your query: *" ${text} "*. \n\nIn high-reliability petrochemical operations, unverified guesses are prohibited. Would you like to log this as a formal Knowledge Gap for an SME review?`,
+        text: `No verified standard operating procedure or technical datasheet matched your query: "${text}".\n\nIn high-reliability petrochemical operations, unverified assumptions are strictly prohibited. Would you like to submit this as a formal Knowledge Gap for rotating equipment SME review?`,
         timestamp: 'Just now',
         confidenceStatus: 'unverified',
         isGapOffer: true,
