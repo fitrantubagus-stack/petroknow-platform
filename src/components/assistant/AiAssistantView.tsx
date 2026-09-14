@@ -191,7 +191,8 @@ export const AiAssistantView: React.FC = () => {
     if (!raw) return false;
     const isGreeting = /^(hi|hello|hey|halo|helo|howdy|greetings|good\s+(morning|afternoon|evening|day)|help|menu|who are you|what can you do|what is this|features|capabilities|bisa apa|bisa ngapain|fungsi)/i.test(raw);
     const isBarcodeReq = /(generate|create|show|make|send|buatkan|tampilkan)\s+(barcode|qr)/i.test(raw);
-    return isGreeting || isBarcodeReq;
+    const isDeveloperReq = /(developer|creator|maker|author|builder|pembuat|pengembang|who\s+(made|built|developed|created)|who\s+is\s+(the\s+)?dev)/i.test(raw);
+    return isGreeting || isBarcodeReq || isDeveloperReq;
   };
 
   const handleSend = (e?: React.FormEvent) => {

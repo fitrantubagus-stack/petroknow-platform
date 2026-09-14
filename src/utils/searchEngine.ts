@@ -92,6 +92,14 @@ export function detectAssistantIntent(query: string): SystemIntentResult | null 
     }
   }
 
+  // 4. Check for developer / creator questions
+  if (/(who\s+(is|are)\s+(the\s+)?(developer|creator|maker|author|builder)s?|who\s+(built|made|created|developed)\s+(this|the)\s+(website|app|platform)?|siapa\s+(yang\s+)?(buat|bikin|develop|pengembang)|about\s+developers?)/i.test(cleaned)) {
+    return {
+      type: 'self_explanation',
+      response: "PetroKnow was engineered and developed by the CALIBER 2026 Innovation Challenge Team:\n\n• Tubagus Fitran Badruttamam (Product & Systems Engineer) - Universitas Muhammadiyah Banten, Faculty of Engineering & Computer Science (Informatics Engineering). Email: fitrantubagus@gmail.com\n\n• Elsa Dinda Fatmasari (UX & Human-Centered Design) - Universitas Muhammadiyah Banten, Faculty of Engineering & Computer Science (Informatics Engineering). Email: elsadinda.fatmasari29@gmail.com\n\nBuilt specifically for PT Chandra Asri Pacific Tbk under Case 1: Manufacturing Knowledge Hub."
+    };
+  }
+
   return null;
 }
 
