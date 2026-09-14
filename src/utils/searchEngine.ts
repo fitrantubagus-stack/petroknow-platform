@@ -37,7 +37,7 @@ export function detectAssistantIntent(query: string): SystemIntentResult | null 
   if (greetingPhrases.has(cleaned)) {
     return {
       type: 'greeting',
-      response: "Hello! I'm the PetroKnow AI Knowledge Assistant. Ask me about equipment procedures, safety protocols, or maintenance tips — for example, try 'compressor vibration' or 'EQ-CMP-204 shutdown procedure'."
+      response: "Hello! I'm the PetroKnow AI Knowledge Assistant for Chandra Asri Pacific. Ask me about equipment procedures, safety interlocks, or One Point Lessons — for example, try 'GA-1201A mechanical seal API Plan 11' or 'KC-4501 compressor surge'."
     };
   }
 
@@ -46,7 +46,7 @@ export function detectAssistantIntent(query: string): SystemIntentResult | null 
   if (isPureGreeting) {
     return {
       type: 'greeting',
-      response: "Hello! I'm the PetroKnow AI Knowledge Assistant. Ask me about equipment procedures, safety protocols, or maintenance tips — for example, try 'compressor vibration' or 'EQ-CMP-204 shutdown procedure'."
+      response: "Hello! I'm the PetroKnow AI Knowledge Assistant for Chandra Asri Pacific. Ask me about equipment procedures, safety interlocks, or One Point Lessons — for example, try 'GA-1201A mechanical seal API Plan 11' or 'KC-4501 compressor surge'."
     };
   }
 

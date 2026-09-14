@@ -9,7 +9,7 @@ import {
 
 export const DigitalTwinMapView: React.FC = () => {
   const { equipmentList, knowledgeEntries, openEquipment, openKnowledge } = useApp();
-  const [selectedEqId, setSelectedEqId] = useState<string>('EQ-CMP-204');
+  const [selectedEqId, setSelectedEqId] = useState<string>('GA-1201A');
   const [filterArea, setFilterArea] = useState<string>('ALL');
 
   // Dynamically compute list of areas from equipmentList
@@ -117,42 +117,79 @@ export const DigitalTwinMapView: React.FC = () => {
               {/* Background Grid */}
               <rect width="1000" height="650" fill="url(#grid)" />
 
-              {/* Process Flow Pipelines (Connecting the real node canvas coordinates) */}
-              <g className="pipelines" opacity="0.8">
-                {/* Tank 501 (820, 195) -> Compressor 204 (480, 182) */}
-                <path d="M 820 195 L 650 195 L 650 182 L 480 182" fill="none" stroke="url(#pipeGrad)" strokeWidth="4" strokeDasharray="8 4" />
-                
-                {/* Compressor 204 (480, 182) -> Reactor 101 (240, 227) */}
-                <path d="M 480 182 L 360 182 L 360 227 L 240 227" fill="none" stroke="url(#pipeGrad)" strokeWidth="4" strokeDasharray="8 4" />
-                
-                {/* Reactor 101 (240, 227) -> Relief Valve 302 (280, 403) */}
-                <path d="M 240 227 L 240 350 L 280 350 L 280 403" fill="none" stroke="url(#pipeGrad)" strokeWidth="3" strokeDasharray="6 3" />
-                
-                {/* Reactor 101 (240, 227) -> Feed Preheater 602 (420, 455) */}
-                <path d="M 240 227 L 240 455 L 420 455" fill="none" stroke="url(#pipeGrad)" strokeWidth="4" strokeDasharray="8 4" />
-                
-                {/* Preheater 602 (420, 455) -> Column 701 (600, 507) */}
-                <path d="M 420 455 L 510 455 L 510 507 L 600 507" fill="none" stroke="url(#pipeGrad)" strokeWidth="4" strokeDasharray="8 4" />
-                
-                {/* Column 701 (600, 507) -> Slurry Pump 405 (680, 338) */}
-                <path d="M 600 507 L 680 507 L 680 338" fill="none" stroke="url(#pipeGrad)" strokeWidth="4" strokeDasharray="8 4" />
-                
-                {/* Pump 405 (680, 338) -> Tank 501 (820, 195) */}
-                <path d="M 680 338 L 820 338 L 820 195" fill="none" stroke="url(#pipeGrad)" strokeWidth="3" strokeDasharray="6 3" />
+              {/* Plot Plan Industrial Boundaries & Main Pipe Rack */}
+              <g className="plot-plan-structures" opacity="0.9">
+                {/* Battery Limit Top */}
+                <line x1="40" y1="50" x2="960" y2="50" stroke="#475569" strokeWidth="2" strokeDasharray="12 6" />
+                <text x="50" y="44" fill="#64748b" fontSize="10" fontWeight="bold" fontFamily="monospace">BATTERY LIMIT [NORTH]</text>
+
+                {/* Main Pipe Rack (Spanning Middle Across Plant Grid) */}
+                <rect x="60" y="275" width="880" height="70" rx="4" fill="#0f172a" stroke="#0284c7" strokeWidth="1.5" strokeDasharray="6 3" fillOpacity="0.6" />
+                <line x1="60" y1="310" x2="940" y2="310" stroke="#0369a1" strokeWidth="2" strokeDasharray="4 4" />
+                <text x="500" y="315" textAnchor="middle" fill="#38bdf8" fontSize="11" fontWeight="bold" fontFamily="monospace" letterSpacing="3">
+                  MAIN PIPE RACK (4"-HC-1002 / MP STEAM / N2 HEADER)
+                </text>
+
+                {/* 6m Plant Road at Bottom */}
+                <rect x="60" y="550" width="880" height="40" rx="4" fill="#0f172a" stroke="#334155" strokeWidth="1" fillOpacity="0.4" />
+                <line x1="60" y1="570" x2="940" y2="570" stroke="#475569" strokeWidth="1" strokeDasharray="10 10" />
+                <text x="500" y="574" textAnchor="middle" fill="#94a3b8" fontSize="10" fontWeight="bold" fontFamily="monospace">
+                  ASPHALT ACCESS ROAD (6m CLEARANCE)
+                </text>
               </g>
 
-              {/* Area Group Zone Outlines (Background decorative zones) */}
-              <rect x="180" y="160" width="160" height="300" rx="12" fill="#0f172a" fillOpacity="0.4" stroke="#334155" strokeWidth="1" strokeDasharray="4 4" />
-              <text x="190" y="180" fill="#64748b" fontSize="10" fontWeight="bold" fontFamily="monospace">ZONE A: REACTOR & VALVE</text>
+              {/* Inter-Equipment Process Transfer Piping */}
+              <g className="pipelines" opacity="0.85">
+                {/* Hexane Feed Pump GA-1201A (180, 182) -> Main Pipe Rack -> Reactor DC-3401A (460, 182) */}
+                <path d="M 180 182 L 180 280 L 460 280 L 460 182" fill="none" stroke="url(#pipeGrad)" strokeWidth="3.5" strokeDasharray="8 4" />
+                
+                {/* Reactor DC-3401A (460, 182) -> Compressor KC-4501 (620, 182) Recycle Gas */}
+                <path d="M 460 182 L 540 182 L 540 280 L 620 280 L 620 182" fill="none" stroke="url(#pipeGrad)" strokeWidth="3" strokeDasharray="6 3" />
+                
+                {/* Level Valve LV-6701 (340, 422) -> Polymer Dryer YD-2301 (320, 182) */}
+                <path d="M 340 422 L 340 340 L 320 340 L 320 182" fill="none" stroke="url(#pipeGrad)" strokeWidth="3" strokeDasharray="8 4" />
+                
+                {/* Solvent Heater EA-5601 (180, 422) -> Reflux Drum FA-8901 (680, 422) */}
+                <path d="M 180 422 L 180 490 L 680 490 L 680 422" fill="none" stroke="url(#pipeGrad)" strokeWidth="3.5" strokeDasharray="8 4" />
+                
+                {/* Cooling Water System CT-7801 (520, 422) Utility Supply */}
+                <path d="M 520 422 L 520 340 L 520 280" fill="none" stroke="#06b6d4" strokeWidth="2.5" strokeDasharray="5 3" />
+              </g>
 
-              <rect x="370" y="120" width="280" height="440" rx="12" fill="#0f172a" fillOpacity="0.4" stroke="#334155" strokeWidth="1" strokeDasharray="4 4" />
-              <text x="380" y="140" fill="#64748b" fontSize="10" fontWeight="bold" fontFamily="monospace">ZONE B: COMPRESSION & FRACTIONATION</text>
+              {/* Area Group Outlines (Matching Chandra Asri Unit Areas) */}
+              <g className="area-boxes">
+                {/* Area 1200 */}
+                <rect x="110" y="110" width="130" height="140" rx="10" fill="#0f172a" fillOpacity="0.4" stroke="#334155" strokeWidth="1" strokeDasharray="3 3" />
+                <text x="120" y="130" fill="#64748b" fontSize="9" fontWeight="bold" fontFamily="monospace">AREA 1200: FEED</text>
 
-              <rect x="670" y="270" width="120" height="150" rx="12" fill="#0f172a" fillOpacity="0.4" stroke="#334155" strokeWidth="1" strokeDasharray="4 4" />
-              <text x="680" y="290" fill="#64748b" fontSize="10" fontWeight="bold" fontFamily="monospace">ZONE C: PUMPS</text>
+                {/* Area 2300 */}
+                <rect x="255" y="110" width="130" height="140" rx="10" fill="#0f172a" fillOpacity="0.4" stroke="#334155" strokeWidth="1" strokeDasharray="3 3" />
+                <text x="265" y="130" fill="#64748b" fontSize="9" fontWeight="bold" fontFamily="monospace">AREA 2300: DRYING</text>
 
-              <rect x="760" y="120" width="180" height="280" rx="12" fill="#0f172a" fillOpacity="0.4" stroke="#334155" strokeWidth="1" strokeDasharray="4 4" />
-              <text x="770" y="140" fill="#64748b" fontSize="10" fontWeight="bold" fontFamily="monospace">ZONE D: TANK FARM</text>
+                {/* Area 3400 */}
+                <rect x="395" y="110" width="140" height="140" rx="10" fill="#0f172a" fillOpacity="0.4" stroke="#334155" strokeWidth="1" strokeDasharray="3 3" />
+                <text x="405" y="130" fill="#64748b" fontSize="9" fontWeight="bold" fontFamily="monospace">AREA 3400: CATALYST</text>
+
+                {/* Area 4500 */}
+                <rect x="550" y="110" width="150" height="140" rx="10" fill="#0f172a" fillOpacity="0.4" stroke="#334155" strokeWidth="1" strokeDasharray="3 3" />
+                <text x="560" y="130" fill="#64748b" fontSize="9" fontWeight="bold" fontFamily="monospace">AREA 4500: RECYCLE</text>
+
+                {/* Area 5600 */}
+                <rect x="110" y="370" width="130" height="150" rx="10" fill="#0f172a" fillOpacity="0.4" stroke="#334155" strokeWidth="1" strokeDasharray="3 3" />
+                <text x="120" y="390" fill="#64748b" fontSize="9" fontWeight="bold" fontFamily="monospace">AREA 5600: HEATER</text>
+
+                {/* Area 6700 */}
+                <rect x="270" y="370" width="140" height="150" rx="10" fill="#0f172a" fillOpacity="0.4" stroke="#334155" strokeWidth="1" strokeDasharray="3 3" />
+                <text x="280" y="390" fill="#64748b" fontSize="9" fontWeight="bold" fontFamily="monospace">AREA 6700: VALVE</text>
+
+                {/* Area 7800 */}
+                <rect x="445" y="370" width="150" height="150" rx="10" fill="#0f172a" fillOpacity="0.4" stroke="#334155" strokeWidth="1" strokeDasharray="3 3" />
+                <text x="455" y="390" fill="#64748b" fontSize="9" fontWeight="bold" fontFamily="monospace">AREA 7800: COOLING</text>
+
+                {/* Area 8900 */}
+                <rect x="615" y="370" width="150" height="150" rx="10" fill="#0f172a" fillOpacity="0.4" stroke="#334155" strokeWidth="1" strokeDasharray="3 3" />
+                <text x="625" y="390" fill="#64748b" fontSize="9" fontWeight="bold" fontFamily="monospace">AREA 8900: REFLUX</text>
+              </g>
 
               {/* Equipment Nodes (Positioned with 0-100% converted to 1000x650 pixels) */}
               {filteredEquipment.map((eq) => {

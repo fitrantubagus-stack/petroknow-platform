@@ -49,10 +49,10 @@ export interface KnowledgeEntry {
 
 export interface EquipmentNode {
   id: string;
-  code: string; // e.g. "EQ-CMP-204"
+  code: string; // e.g. "GA-1201A"
   name: string;
-  area: string; // e.g. "Zone A - Ethylene Cracker Unit"
-  category: 'Compressor' | 'Reactor' | 'Storage Tank' | 'Pump' | 'Valve' | 'Heat Exchanger' | 'Column';
+  area: string; // e.g. "Area 1200 - Feed Preparation & Purification"
+  category: 'Compressor' | 'Reactor' | 'Storage Tank' | 'Pump' | 'Valve' | 'Heat Exchanger' | 'Column' | 'Dryer' | 'Fan' | 'Pressure Vessel';
   description: string;
   status: 'operational' | 'maintenance' | 'warning' | 'standby';
   x: number; // Percentage on 2D map (0 - 100)
@@ -64,13 +64,19 @@ export interface EquipmentNode {
   linkedPartNumbers: string[];
   lastInspected: string;
   healthStatus?: 'healthy' | 'warning' | 'critical';
+  interlockSeq?: string;
+  datasheetDocNo?: string;
+  drawingDocNo?: string;
+  silLevel?: string;
+  criticality?: string;
+  functionalLoc?: string;
 }
 
 export interface SparePart {
   id: string;
   partNumber: string; // e.g. "PRT-MEC-3112"
   name: string;
-  category: 'Mechanical Seal' | 'Gasket' | 'Bearing' | 'Valve Trim' | 'Filter Cartridge' | 'Sensor' | 'O-Ring Kit' | 'Impeller';
+  category: 'Mechanical Seal' | 'Gasket' | 'Bearing' | 'Valve Trim' | 'Filter Cartridge' | 'Sensor' | 'O-Ring Kit' | 'Impeller' | 'Catalyst' | 'Fan Blade' | 'Coupling' | 'Packing' | 'Plate Valve';
   compatibleEquipmentIds: string[];
   currentStock: number;
   minThreshold: number;

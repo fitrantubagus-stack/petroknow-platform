@@ -108,6 +108,34 @@ export const EquipmentDetailModal: React.FC = () => {
                     <p className="text-sm font-bold text-slate-100 font-mono mt-0.5">{equipment.flowRate}</p>
                   </div>
                 </div>
+
+                {/* Engineering & Interlock Specifications (CALIBER Case 1 Compliance) */}
+                {(equipment.interlockSeq || equipment.datasheetDocNo || equipment.silLevel) && (
+                  <div className="pt-2 border-t border-slate-700/50 space-y-2">
+                    <div className="flex items-center justify-between text-[11px] font-bold text-teal-300">
+                      <span>Engineering & Safety Interlock Spec</span>
+                      <span className="font-mono text-[10px] text-slate-400">{equipment.functionalLoc || 'LLDPE Unit'}</span>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
+                      <div className="p-2 rounded bg-slate-900/90 border border-slate-700/50">
+                        <span className="text-[10px] text-slate-400 block">Interlock Logic</span>
+                        <span className="font-mono font-bold text-amber-300">{equipment.interlockSeq || 'N/A'}</span>
+                      </div>
+                      <div className="p-2 rounded bg-slate-900/90 border border-slate-700/50">
+                        <span className="text-[10px] text-slate-400 block">Safety Integrity</span>
+                        <span className="font-mono font-bold text-cyan-300">{equipment.silLevel || 'SIL-1'}</span>
+                      </div>
+                      <div className="p-2 rounded bg-slate-900/90 border border-slate-700/50">
+                        <span className="text-[10px] text-slate-400 block">Datasheet Doc</span>
+                        <span className="font-mono text-[10px] text-slate-300 truncate block" title={equipment.datasheetDocNo}>{equipment.datasheetDocNo || 'N/A'}</span>
+                      </div>
+                      <div className="p-2 rounded bg-slate-900/90 border border-slate-700/50">
+                        <span className="text-[10px] text-slate-400 block">GA Drawing</span>
+                        <span className="font-mono text-[10px] text-slate-300 truncate block" title={equipment.drawingDocNo}>{equipment.drawingDocNo || 'N/A'}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Status and Action Buttons */}

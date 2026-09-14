@@ -51,31 +51,31 @@ export const AiAssistantView: React.FC = () => {
   const photoPresets = [
     {
       id: 'photo-1',
-      title: 'Compressor High Temp & Flutter Alarm',
-      label: 'Compressor C-204 Stage 2 Discharge High Temp flutter alarm',
+      title: 'Hexane Feed Pump GA-1201A Seal Flush Plan 11',
+      label: 'Hexane Feed Pump GA-1201A mechanical seal API Plan 11 flush line verification',
       thumb: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=300&auto=format&fit=crop&q=80',
-      description: 'C-204 Stage 2 cylinder cap thermography readout showing 122°C with flutter code.'
+      description: 'GA-1201A mechanical seal flush piping inspection, orifice dp gauge verification.'
     },
     {
       id: 'photo-2',
-      title: 'Reactor Loop Skin Thermocouple High',
-      label: 'Loop reactor catalyst injection rate adjustment grade transition',
+      title: 'Cycle Gas Compressor KC-4501 Seal Oil Tank Low Level',
+      label: 'Cycle Gas Compressor KC-4501 seal oil overhead tank level alarm SEQ-4501 interlock',
       thumb: 'https://images.unsplash.com/photo-1581092335397-9583fe92d232?w=300&auto=format&fit=crop&q=80',
-      description: 'Catalytic reactor control console during polymer grade transition.'
+      description: 'KC-4501 LSH-4501 interlock transmitter readout and seal oil pressure differential.'
     },
     {
       id: 'photo-3',
-      title: 'Slurry Pump Plan 53B Barrier Fluid',
-      label: 'Slurry pump mechanical seal Plan 53B barrier fluid reservoir low',
+      title: 'Pellet Dryer YD-2301 Agglomerate Screen Clogging',
+      label: 'Pellet Dryer YD-2301 rotary screen mesh inspection agglomerate high moisture',
       thumb: 'https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?w=300&auto=format&fit=crop&q=80',
-      description: 'API Plan 53B seal fluid reservoir sight glass showing low barrier level.'
+      description: 'YD-2301 screen basket visual check and differential pressure sensor cleaning.'
     },
     {
       id: 'photo-4',
-      title: 'Cryogenic Tank Boil-Off Vapor Pressure',
-      label: 'Cryogenic liquid ethylene storage tank boil-off gas BOG compressor',
+      title: 'Control Valve LV-6701 Pneumatic Actuator Diaphragm',
+      label: 'Reactor Level Control Valve LV-6701 positioner calibration actuator diaphragm leakage',
       thumb: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=300&auto=format&fit=crop&q=80',
-      description: 'TK-501 pressure transmitter PT-501A reading 1.26 bar.'
+      description: 'LV-6701 air supply regulator and Fisher DVC6200 digital positioner inspection.'
     }
   ];
 
@@ -513,28 +513,28 @@ export const AiAssistantView: React.FC = () => {
       <div className="px-4 sm:px-6 py-2 border-t border-slate-800/80 bg-slate-900/60 overflow-x-auto flex items-center gap-2">
         <span className="text-[10px] text-slate-400 uppercase font-bold shrink-0">Suggested:</span>
         <button
-          onClick={() => handlePromptChipClick('Reciprocating compressor C-204 valve flutter high temperature')}
+          onClick={() => handlePromptChipClick('GA-1201A mechanical seal API Plan 11 verification procedure')}
           className="text-[11px] px-2.5 py-1 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/80 whitespace-nowrap transition-colors"
         >
-          Compressor C-204 High Temp
+          GA-1201A Seal Flush Plan 11
         </button>
         <button
-          onClick={() => handlePromptChipClick('Catalyst injection rate adjustment during loop reactor grade transition')}
+          onClick={() => handlePromptChipClick('KC-4501 Cycle Gas Compressor surge control and interlock sequence SEQ-4501')}
           className="text-[11px] px-2.5 py-1 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/80 whitespace-nowrap transition-colors"
         >
-          Loop Reactor Grade Transition
+          KC-4501 Compressor Interlock
         </button>
         <button
-          onClick={() => handlePromptChipClick('Cryogenic liquid ethylene storage tank boil-off gas BOG compressor balancing')}
+          onClick={() => handlePromptChipClick('YD-2301 Pellet Dryer rotary screen mesh cleaning and high moisture')}
           className="text-[11px] px-2.5 py-1 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/80 whitespace-nowrap transition-colors"
         >
-          Cryogenic Tank BOG Balancing
+          YD-2301 Pellet Dryer Cleaning
         </button>
         <button
-          onClick={() => handlePromptChipClick('Emergency thermal runaway quench procedure')}
+          onClick={() => handlePromptChipClick('LV-6701 Reactor Level Control Valve actuator calibration and stem packing')}
           className="text-[11px] px-2.5 py-1 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/80 whitespace-nowrap transition-colors"
         >
-          Emergency Reactor Quench
+          LV-6701 Valve Calibration
         </button>
       </div>
 
@@ -546,7 +546,7 @@ export const AiAssistantView: React.FC = () => {
             value={inputQuery}
             onChange={(e) => setInputQuery(e.target.value)}
             onPaste={handlePaste}
-            placeholder="Type your operational question (e.g. 'How to handle high delta P on demethanizer', 'EQ-CMP-204 lube filter change')..."
+            placeholder="Type your operational question (e.g. 'GA-1201A mechanical seal replacement', 'KC-4501 vibration interlock', 'YD-2301 OPL')..."
             className="flex-1 bg-slate-950 border border-slate-700/80 rounded-xl px-4 py-3 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500/50 transition-all font-sans"
           />
           <button
