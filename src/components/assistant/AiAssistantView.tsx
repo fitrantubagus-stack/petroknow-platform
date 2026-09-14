@@ -510,31 +510,43 @@ export const AiAssistantView: React.FC = () => {
       </div>
 
       {/* Suggested Prompt Chips */}
-      <div className="px-4 sm:px-6 py-2 border-t border-slate-800/80 bg-slate-900/60 overflow-x-auto flex items-center gap-2">
-        <span className="text-[10px] text-slate-400 uppercase font-bold shrink-0">Suggested:</span>
+      <div className="px-4 sm:px-6 py-2 border-t border-slate-800/80 bg-slate-900/60 overflow-x-auto flex items-center gap-2 no-scrollbar">
+        <span className="text-[10px] text-teal-400 uppercase font-bold shrink-0">Dataset Queries:</span>
         <button
-          onClick={() => handlePromptChipClick('GA-1201A mechanical seal API Plan 11 verification procedure')}
-          className="text-[11px] px-2.5 py-1 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/80 whitespace-nowrap transition-colors"
+          onClick={() => handlePromptChipClick('Berapa trip setpoint PSLL-1201 dan apa voting logic-nya?')}
+          className="text-[11px] px-2.5 py-1 rounded-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 whitespace-nowrap transition-colors"
         >
-          GA-1201A Seal Flush Plan 11
+          🚨 Trip Setpoint PSLL-1201
         </button>
         <button
-          onClick={() => handlePromptChipClick('KC-4501 Cycle Gas Compressor surge control and interlock sequence SEQ-4501')}
+          onClick={() => handlePromptChipClick('Berapa operating pressure dan spesifikasi GA-1201A?')}
           className="text-[11px] px-2.5 py-1 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/80 whitespace-nowrap transition-colors"
         >
-          KC-4501 Compressor Interlock
+          ⚙️ Specs & Pressure GA-1201A
         </button>
         <button
-          onClick={() => handlePromptChipClick('YD-2301 Pellet Dryer rotary screen mesh cleaning and high moisture')}
+          onClick={() => handlePromptChipClick('Apa material casing dan deck YD-2301?')}
           className="text-[11px] px-2.5 py-1 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/80 whitespace-nowrap transition-colors"
         >
-          YD-2301 Pellet Dryer Cleaning
+          🔬 Metalurgi MOC YD-2301
         </button>
         <button
-          onClick={() => handlePromptChipClick('LV-6701 Reactor Level Control Valve actuator calibration and stem packing')}
+          onClick={() => handlePromptChipClick('Berapa MTBF GA-1201A menurut riwayat maintenance?')}
           className="text-[11px] px-2.5 py-1 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/80 whitespace-nowrap transition-colors"
         >
-          LV-6701 Valve Calibration
+          📊 MTBF & History GA-1201A
+        </button>
+        <button
+          onClick={() => handlePromptChipClick('Berapa stok mechanical seal PRT-MEC-3112 dan di mana lokasinya?')}
+          className="text-[11px] px-2.5 py-1 rounded-full bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 whitespace-nowrap transition-colors"
+        >
+          📦 Stok Suku Cadang Gudang
+        </button>
+        <button
+          onClick={() => handlePromptChipClick('Bagaimana prosedur mengatasi vapor lock pada pompa hexane?')}
+          className="text-[11px] px-2.5 py-1 rounded-full bg-teal-500/10 hover:bg-teal-500/20 text-teal-300 border border-teal-500/30 whitespace-nowrap transition-colors"
+        >
+          💡 Tacit Wisdom Pak Joko
         </button>
       </div>
 

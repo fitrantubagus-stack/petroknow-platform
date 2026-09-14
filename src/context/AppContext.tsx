@@ -10,7 +10,7 @@ import {
   INITIAL_ACTIVITY_FEED, INITIAL_RETIREMENT_CAMPAIGNS 
 } from '../data/initialData';
 import { calculateFreshness, SIMULATED_CURRENT_DATE } from '../utils/freshness';
-import { searchKnowledgeBase, detectAssistantIntent } from '../utils/searchEngine';
+import { searchKnowledgeBase, detectAssistantIntent, resolveDatasetQuery } from '../utils/searchEngine';
 
 export type AppView = 
   | 'landing' 
@@ -663,6 +663,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     // Run real deterministic retrieval search against current knowledge entries
     const searchTargetText = imageInfo?.label ? `${imageInfo.label} ${text}` : text;
+
+    // Check direct technical dataset schemas (Datasheets, Interlock setpoints, Spare Parts, Maintenance history)
+    const datasetResult = resolveDatasetQuery(searchTargetText, equipmentList, spareParts, documents, knowledgeEntries);
+    if (datasetResult) {
+      await new Promise(res => setTimeout(res, 400));
+      const assistantMsgId = `msg-ai-${Date.now()}`;
+      const aiMsg: ChatMessage = {
+        id: assistantMsgId,
+        sender: 'assistant',
+        text: datasetResult.text,
+        timestamp: 'Just now',
+        matchedEntry: datasetResult.matchedEntry,
+        matchScore: datasetResult.matchScore,
+        confidenceStatus: datasetResult.confidenceStatus,
+        sources: datasetResult.sources
+      };
+      setChatMessages(prev => [...prev, aiMsg]);
+      return;
+    }
+
     const matches = searchKnowledgeBase(searchTargetText, knowledgeEntries, equipmentList, false);
 
     // Simulate short, authentic processing delay
