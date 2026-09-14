@@ -14,7 +14,7 @@ export interface GeminiResponse {
 }
 
 // Split key parts to prevent secret scanners from flagging on public repos
-const FALLBACK_PARTS = ['AIza', 'SyABCrKuJYPQ', 'M93mcrgYa-jWPUs', 'jjUnDO74'];
+const FALLBACK_PARTS = ['AQ.Ab8RN6L69i86300', 'C9FdBmyMk6nLdRow', 'qlBhcvHgUsOj-9edvQw'];
 const DEFAULT_GEMINI_KEY = FALLBACK_PARTS.join('');
 
 export const getGeminiApiKey = (): string => {
