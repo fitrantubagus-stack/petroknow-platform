@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { AppProvider, useApp, AppView } from './context/AppContext';
 import { Navbar } from './components/layout/Navbar';
@@ -31,13 +31,23 @@ const PATH_TO_VIEW_MAP: Record<string, AppView> = {
   '/': 'landing',
   '/contact': 'contact',
   '/mission-control': 'dashboard',
+  '/dashboard': 'dashboard',
+  '/app': 'dashboard',
+  '/missioncontrol': 'dashboard',
   '/ai-assistant': 'assistant',
+  '/assistant': 'assistant',
   '/digital-twin-map': 'map',
+  '/map': 'map',
   '/scan-center': 'scancenter',
+  '/scanner': 'scancenter',
   '/retirement-campaigns': 'campaigns',
+  '/campaigns': 'campaigns',
   '/tacit-knowledge': 'tacit',
+  '/tacit': 'tacit',
   '/verification-queue': 'verification',
+  '/verification': 'verification',
   '/document-library': 'library',
+  '/library': 'library',
   '/freshness': 'freshness',
   '/analytics': 'analytics'
 };
@@ -72,27 +82,49 @@ const AppLayoutWrapper: React.FC<{ children: React.ReactNode }> = ({ children })
   );
 };
 
+const SmartFallbackRoute: React.FC = () => {
+  const location = useLocation();
+  const path = location.pathname.toLowerCase();
+  if (path.includes('mission-control') || path.includes('missioncontrol') || path.includes('dashboard')) {
+    return <Navigate to="/mission-control" replace />;
+  }
+  if (path.includes('assistant') || path.includes('ai')) {
+    return <Navigate to="/ai-assistant" replace />;
+  }
+  if (path.includes('map') || path.includes('twin')) {
+    return <Navigate to="/digital-twin-map" replace />;
+  }
+  return <Navigate to="/" replace />;
+};
+
 const MainAppContent: React.FC = () => {
   const { currentView, setCurrentView, setActiveModal, closeMobileSidebar } = useApp();
   const location = useLocation();
   const navigate = useNavigate();
+  const isInitialMount = useRef(true);
 
   // Sync URL changes to AppContext view
   useEffect(() => {
     closeMobileSidebar();
-    const view = PATH_TO_VIEW_MAP[location.pathname];
+    const cleanPath = location.pathname.toLowerCase().replace(/\/$/, '') || '/';
+    const view = PATH_TO_VIEW_MAP[cleanPath];
     if (view && view !== currentView) {
       setCurrentView(view);
-    } else if (location.pathname === '/login') {
+    } else if (cleanPath === '/login') {
       setActiveModal('login_role');
       navigate('/mission-control', { replace: true });
     }
   }, [location.pathname]);
 
-  // Sync programmatic view changes to URL
+  // Sync programmatic view changes to URL (only when intentionally changed by user action)
   useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
     const targetPath = VIEW_TO_PATH_MAP[currentView];
-    if (targetPath && location.pathname !== targetPath) {
+    const cleanPath = location.pathname.toLowerCase().replace(/\/$/, '') || '/';
+    if (targetPath && cleanPath !== targetPath) {
       navigate(targetPath);
     }
   }, [currentView]);
@@ -186,8 +218,20 @@ const MainAppContent: React.FC = () => {
           } 
         />
 
+        {/* Route Aliases */}
+        <Route path="/dashboard" element={<Navigate to="/mission-control" replace />} />
+        <Route path="/app" element={<Navigate to="/mission-control" replace />} />
+        <Route path="/missioncontrol" element={<Navigate to="/mission-control" replace />} />
+        <Route path="/map" element={<Navigate to="/digital-twin-map" replace />} />
+        <Route path="/assistant" element={<Navigate to="/ai-assistant" replace />} />
+        <Route path="/scanner" element={<Navigate to="/scan-center" replace />} />
+        <Route path="/library" element={<Navigate to="/document-library" replace />} />
+        <Route path="/campaigns" element={<Navigate to="/retirement-campaigns" replace />} />
+        <Route path="/tacit" element={<Navigate to="/tacit-knowledge" replace />} />
+        <Route path="/verification" element={<Navigate to="/verification-queue" replace />} />
+
         {/* Fallback */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<SmartFallbackRoute />} />
       </Routes>
 
       {/* Global Modals rendered on top of any active route */}

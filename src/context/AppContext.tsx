@@ -142,9 +142,26 @@ const AppContext = createContext<AppContextType | null>(null);
 
 const STORAGE_KEY = 'petroknow_caliber_2026_v5_live';
 
+const getInitialAppView = (): AppView => {
+  if (typeof window === 'undefined') return 'landing';
+  const path = window.location.pathname.toLowerCase().replace(/\/$/, '') || '/';
+  if (path === '/mission-control' || path === '/dashboard' || path === '/app') return 'dashboard';
+  if (path === '/ai-assistant' || path === '/assistant') return 'assistant';
+  if (path === '/digital-twin-map' || path === '/map') return 'map';
+  if (path === '/scan-center' || path === '/scanner') return 'scancenter';
+  if (path === '/retirement-campaigns' || path === '/campaigns') return 'campaigns';
+  if (path === '/tacit-knowledge' || path === '/tacit') return 'tacit';
+  if (path === '/verification-queue' || path === '/verification') return 'verification';
+  if (path === '/document-library' || path === '/library') return 'library';
+  if (path === '/freshness') return 'freshness';
+  if (path === '/analytics') return 'analytics';
+  if (path === '/contact') return 'contact';
+  return 'landing';
+};
+
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Load saved state or defaults
-  const [currentView, setCurrentView] = useState<AppView>('landing');
+  const [currentView, setCurrentView] = useState<AppView>(getInitialAppView);
   const [role, setRoleState] = useState<Role>('operator');
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
     return localStorage.getItem('petroknow_sidebar_collapsed') === 'true';
