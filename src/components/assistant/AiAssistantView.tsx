@@ -1,13 +1,82 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
-import { ChatMessage } from '../../types';
-import { decodeBarcodeOrQrFromFile } from '../../utils/barcodeUtils';
+import { ChatMessage, ChatBarcodeAttachment } from '../../types';
+import { decodeBarcodeOrQrFromFile, generateQrCodeDataUrl, generateBarcodeDataUrl } from '../../utils/barcodeUtils';
 import { 
   Bot, Send, Image, ThumbsUp, ThumbsDown, Sparkles, 
   CheckCircle2, AlertTriangle, HelpCircle, ArrowUpRight, 
   RotateCcw, Camera, Flame, Gauge, X, ShieldAlert, WifiOff,
-  Zap, Clock, FileSearch, Database, Cpu, Layers, Check
+  Zap, Clock, FileSearch, Database, Cpu, Layers, Check,
+  Download, QrCode, Barcode
 } from 'lucide-react';
+
+const ChatBarcodeCard: React.FC<{ item: ChatBarcodeAttachment }> = ({ item }) => {
+  const [dataUrl, setDataUrl] = useState<string>('');
+  const { setCurrentView } = useApp();
+
+  useEffect(() => {
+    let active = true;
+    if (item.type === 'qr') {
+      generateQrCodeDataUrl(item.code).then(url => {
+        if (active) setDataUrl(url);
+      });
+    } else {
+      const url = generateBarcodeDataUrl(item.code);
+      setDataUrl(url);
+    }
+    return () => { active = false; };
+  }, [item.code, item.type]);
+
+  const handleDownload = () => {
+    if (!dataUrl) return;
+    const a = document.createElement('a');
+    a.href = dataUrl;
+    a.download = `${item.code}_${item.type}.png`;
+    a.click();
+  };
+
+  return (
+    <div className="p-3 rounded-xl bg-slate-950/90 border border-teal-500/30 shadow-md space-y-2.5 w-full sm:max-w-xs">
+      <div className="flex items-center justify-between">
+        <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-teal-500/20 text-teal-300 border border-teal-500/30">
+          {item.type === 'qr' ? 'PLANT FLOOR QR TAG' : 'WAREHOUSE BARCODE'}
+        </span>
+        <span className="font-mono text-[11px] font-bold text-slate-200">{item.code}</span>
+      </div>
+
+      <div className="p-2.5 bg-white rounded-lg flex items-center justify-center shadow-inner">
+        {dataUrl ? (
+          <img 
+            src={dataUrl} 
+            alt={item.label} 
+            className={item.type === 'qr' ? 'w-28 h-28 object-contain' : 'w-full h-14 object-contain'} 
+          />
+        ) : (
+          <div className="w-28 h-14 flex items-center justify-center text-slate-500 text-xs font-mono">Generating...</div>
+        )}
+      </div>
+
+      <p className="text-[11px] text-slate-300 font-medium truncate">{item.label}</p>
+
+      <div className="flex items-center gap-2 pt-1">
+        <button
+          onClick={handleDownload}
+          className="flex-1 py-1.5 px-2 rounded-lg bg-teal-500/20 hover:bg-teal-500/30 text-teal-300 border border-teal-500/40 text-[11px] font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
+        >
+          <Download className="w-3 h-3" />
+          <span>Download</span>
+        </button>
+        <button
+          onClick={() => setCurrentView('scancenter')}
+          className="flex-1 py-1.5 px-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-[11px] font-semibold flex items-center justify-center gap-1 transition-colors cursor-pointer"
+        >
+          <QrCode className="w-3 h-3 text-cyan-400" />
+          <span>Scan Center</span>
+        </button>
+      </div>
+    </div>
+  );
+};
 
 export const AiAssistantView: React.FC = () => {
   const { 
@@ -112,18 +181,34 @@ export const AiAssistantView: React.FC = () => {
     finalizeAiResponse(currentPendingQuestion, pendingImageInfo, pendingCustomResponse);
   };
 
+  const isQuickQuery = (q: string): boolean => {
+    const raw = q.trim().toLowerCase().replace(/[.,?!:;'"()\[\]{}~@#$%^&*_\-+=<>/\\]/g, ' ').replace(/\s+/g, ' ').trim();
+    if (!raw) return false;
+    const isGreeting = /^(hi|hello|hey|halo|helo|howdy|greetings|good\s+(morning|afternoon|evening|day)|help|menu|who are you|what can you do|what is this|features|capabilities|bisa apa|bisa ngapain|fungsi)/i.test(raw);
+    const isBarcodeReq = /(generate|create|show|make|send|buatkan|tampilkan)\s+(barcode|qr)/i.test(raw);
+    return isGreeting || isBarcodeReq;
+  };
+
   const handleSend = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!inputQuery.trim() || isProcessing || isThinking) return;
 
     const query = inputQuery.trim();
     setInputQuery('');
-    start55SecondDeepSearch(query);
+    if (isQuickQuery(query)) {
+      finalizeAiResponse(query);
+    } else {
+      start55SecondDeepSearch(query);
+    }
   };
 
   const handlePromptChipClick = (chipText: string) => {
     if (isProcessing || isThinking) return;
-    start55SecondDeepSearch(chipText);
+    if (isQuickQuery(chipText)) {
+      finalizeAiResponse(chipText);
+    } else {
+      start55SecondDeepSearch(chipText);
+    }
   };
 
   // Preset plant photos for "Ask by Photo"
@@ -547,6 +632,13 @@ export const AiAssistantView: React.FC = () => {
                         )}
                       </div>
 
+                      {msg.isGeminiLive && (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 flex items-center gap-1">
+                          <Sparkles className="w-3 h-3 text-cyan-400" />
+                          Gemini 3.6 Flash Live
+                        </span>
+                      )}
+
                       {msg.matchScore !== undefined && (
                         <span className="text-[10px] font-mono text-teal-400 font-bold">
                           {msg.matchScore}% Match Score
@@ -559,6 +651,20 @@ export const AiAssistantView: React.FC = () => {
                   <div className="whitespace-pre-wrap font-sans text-xs leading-relaxed">
                     {cleanText}
                   </div>
+
+                  {/* Generated Barcodes or QR Tags */}
+                  {!isUser && msg.barcodes && msg.barcodes.length > 0 && (
+                    <div className="pt-2 border-t border-slate-800 space-y-2">
+                      <span className="text-[10px] font-bold text-teal-400 uppercase tracking-wider block">
+                        Generated Interactive Physical Tags:
+                      </span>
+                      <div className="flex flex-wrap gap-2.5">
+                        {msg.barcodes.map((bItem, bIdx) => (
+                          <ChatBarcodeCard key={bIdx} item={bItem} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Sources section if available */}
                   {!isUser && msg.sources && msg.sources.length > 0 && (
@@ -732,6 +838,20 @@ export const AiAssistantView: React.FC = () => {
       {/* Suggested Prompt Chips (100% Technical English Grounded in Dataset) */}
       <div className="px-4 sm:px-6 py-2 border-t border-slate-800/80 bg-slate-900/60 overflow-x-auto flex items-center gap-2 no-scrollbar">
         <span className="text-[10px] text-teal-400 uppercase font-bold shrink-0">Dataset Queries:</span>
+        <button
+          onClick={() => handlePromptChipClick('What are your core engineering capabilities and how does PetroKnow work?')}
+          disabled={isThinking || isProcessing}
+          className="text-[11px] px-2.5 py-1 rounded-full bg-cyan-500/10 hover:bg-cyan-500/20 disabled:opacity-50 text-cyan-300 border border-cyan-500/30 whitespace-nowrap transition-colors cursor-pointer"
+        >
+          💡 AI Capabilities & Help
+        </button>
+        <button
+          onClick={() => handlePromptChipClick('Generate a scannable barcode for GA-1201A mechanical seal PRT-MEC-3112 and plant floor QR code for GA-1201A')}
+          disabled={isThinking || isProcessing}
+          className="text-[11px] px-2.5 py-1 rounded-full bg-teal-500/15 hover:bg-teal-500/25 disabled:opacity-50 text-teal-300 border border-teal-500/40 whitespace-nowrap transition-colors cursor-pointer"
+        >
+          🏷️ Generate Barcode & QR
+        </button>
         <button
           onClick={() => handlePromptChipClick('What is the trip setpoint and voting logic for PSLL-1201?')}
           disabled={isThinking || isProcessing}

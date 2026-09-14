@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
+import { VoiceFieldMemo } from './VoiceFieldMemo';
 import { 
   Lightbulb, Plus, Trash2, CheckCircle2, 
   Sparkles, Layers, ShieldCheck, ArrowRight, User 
@@ -120,6 +121,22 @@ export const TacitKnowledgeView: React.FC = () => {
           )}
         </div>
       )}
+
+      {/* Voice-to-Tacit Field Memo Recorder */}
+      <VoiceFieldMemo
+        onApplyVoiceData={(data) => {
+          setTitle(data.title);
+          setSituation(data.situation);
+          setContent(`${data.actionTaken}\n\nRoot Cause Analysis:\n${data.rootCause}\n\nKey Lesson Learned:\n${data.lessonLearned}`);
+          setSteps([
+            data.actionTaken,
+            'Verify operating temperature and vibration stabilize below advisory threshold',
+            'Update shift handover log and cross-check P&ID'
+          ]);
+          setSelectedEqId(data.equipmentCode);
+          setTagsInput('Voice_Memo, Field_Audio, STAR_Heuristic');
+        }}
+      />
 
       {/* Main Submission Form */}
       <form onSubmit={handleSubmit} className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-6">

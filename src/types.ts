@@ -153,6 +153,12 @@ export interface ActivityItem {
   targetId?: string;
 }
 
+export interface ChatBarcodeAttachment {
+  code: string;
+  label: string;
+  type: 'barcode' | 'qr';
+}
+
 export interface ChatMessage {
   id: string;
   sender: 'user' | 'assistant';
@@ -174,6 +180,8 @@ export interface ChatMessage {
   feedback?: 'up' | 'down';
   isGapOffer?: boolean;
   rawQuery?: string;
+  barcodes?: ChatBarcodeAttachment[];
+  isGeminiLive?: boolean;
 }
 
 export interface PlantStats {

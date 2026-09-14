@@ -70,6 +70,20 @@ export const DashboardView: React.FC = () => {
             <Activity className="w-3.5 h-3.5 text-amber-400" />
             <span>CALIBER 2026 Walkthrough</span>
           </button>
+          <button
+            onClick={() => setActiveModal('shift_handover')}
+            className="px-3.5 py-2 rounded-xl bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 border border-indigo-500/40 text-xs font-bold flex items-center gap-1.5 transition-all shadow-md shadow-indigo-500/10 cursor-pointer"
+          >
+            <Clock className="w-3.5 h-3.5 text-indigo-400" />
+            <span>Shift Handover</span>
+          </button>
+          <button
+            onClick={() => setActiveModal('what_if_simulator')}
+            className="px-3.5 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-xs font-bold flex items-center gap-1.5 transition-all shadow-md shadow-rose-500/10 cursor-pointer"
+          >
+            <ShieldAlert className="w-3.5 h-3.5 text-rose-400" />
+            <span>What-If Simulator</span>
+          </button>
         </div>
       </div>
 
@@ -101,6 +115,72 @@ export const DashboardView: React.FC = () => {
           <span>Launch Interactive Walkthrough</span>
           <ArrowRight className="w-4 h-4" />
         </button>
+      </div>
+
+      {/* Industrial Operational Cockpits: Shift Handover & What-If Sandbox */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Shift Handover Card */}
+        <div 
+          onClick={() => setActiveModal('shift_handover')}
+          className="cursor-pointer p-4 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950/40 border border-indigo-500/30 hover:border-indigo-500/60 transition-all shadow-lg group relative overflow-hidden"
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-indigo-500/20 border border-indigo-500/30 text-indigo-300">
+                <Clock className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                    12-HOUR SHIFT PROTOCOL
+                  </span>
+                  <span className="text-[10px] text-emerald-400 font-semibold flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    Custody Ready
+                  </span>
+                </div>
+                <h3 className="text-sm font-bold text-slate-100 group-hover:text-indigo-300 transition-colors mt-0.5">
+                  Shift Handover Cockpit (Shift A → Shift B)
+                </h3>
+              </div>
+            </div>
+            <ArrowRight className="w-4 h-4 text-indigo-400 group-hover:translate-x-1 transition-transform shrink-0 mt-1" />
+          </div>
+          <p className="text-xs text-slate-400 mt-2.5 leading-relaxed">
+            Consolidates running plant equipment states, active work orders, pending tacit verification queues, and digital supervisor sign-offs.
+          </p>
+        </div>
+
+        {/* What-If Simulator Card */}
+        <div 
+          onClick={() => setActiveModal('what_if_simulator')}
+          className="cursor-pointer p-4 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900 to-rose-950/40 border border-rose-500/30 hover:border-rose-500/60 transition-all shadow-lg group relative overflow-hidden"
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-rose-500/20 border border-rose-500/30 text-rose-300">
+                <ShieldAlert className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                    HAZOP SANDBOX
+                  </span>
+                  <span className="text-[10px] text-amber-400 font-semibold">
+                    8 Equipment Nodes
+                  </span>
+                </div>
+                <h3 className="text-sm font-bold text-slate-100 group-hover:text-rose-300 transition-colors mt-0.5">
+                  "What-If" Process Safety & Incident Simulator
+                </h3>
+              </div>
+            </div>
+            <ArrowRight className="w-4 h-4 text-rose-400 group-hover:translate-x-1 transition-transform shrink-0 mt-1" />
+          </div>
+          <p className="text-xs text-slate-400 mt-2.5 leading-relaxed">
+            Test cascading failure modes (Plan 11 orifice plug, dry running, vibration spike) and inspect SIS interlocks (PSLL-1201, 1oo2 voting) in real-time.
+          </p>
+        </div>
       </div>
 
       {/* KPI Cards Row (Computed Live from State) */}

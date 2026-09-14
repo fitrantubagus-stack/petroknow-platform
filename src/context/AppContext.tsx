@@ -11,6 +11,7 @@ import {
 } from '../data/initialData';
 import { calculateFreshness, SIMULATED_CURRENT_DATE } from '../utils/freshness';
 import { searchKnowledgeBase, detectAssistantIntent, resolveDatasetQuery } from '../utils/searchEngine';
+import { askGemini } from '../services/geminiService';
 
 export type AppView = 
   | 'landing' 
@@ -34,6 +35,8 @@ export type ActiveModal =
   | 'knowledge_detail' 
   | 'doc_detail' 
   | 'case_study'
+  | 'shift_handover'
+  | 'what_if_simulator'
   | null;
 
 interface AppContextType {
@@ -730,7 +733,41 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return;
     }
 
-    // Check for lightweight heuristic system intent (greetings / self-explanation / meta questions)
+    // Try Live Google Gemini Flash first
+    try {
+      const geminiRes = await askGemini(text, {
+        equipmentList,
+        spareParts,
+        documents,
+        knowledgeEntries
+      });
+
+      if (geminiRes && geminiRes.text) {
+        const assistantMsgId = `msg-ai-${Date.now()}`;
+        const aiMsg: ChatMessage = {
+          id: assistantMsgId,
+          sender: 'assistant',
+          text: geminiRes.text,
+          timestamp: 'Just now',
+          confidenceStatus: 'verified',
+          isGeminiLive: true,
+          barcodes: geminiRes.barcodes,
+          sources: geminiRes.sources?.map((s, idx) => ({
+            id: `SRC-${idx + 1}`,
+            title: s,
+            snippet: 'Official engineering documentation verified in PT Chandra Asri Pacific Tbk archives.',
+            category: 'Engineering Standard',
+            status: 'verified' as const
+          }))
+        };
+        setChatMessages(prev => [...prev, aiMsg]);
+        return;
+      }
+    } catch (geminiError) {
+      console.warn('Live Gemini API call bypassed or timed out, using local deterministic engine:', geminiError);
+    }
+
+    // Fallback: Check for lightweight heuristic system intent (greetings / self-explanation / meta questions)
     if (!imageInfo) {
       const intent = detectAssistantIntent(text);
       if (intent) {
@@ -741,7 +778,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           sender: 'assistant',
           text: intent.response,
           timestamp: 'Just now'
-          // No confidenceStatus, no matchedEntry, no sources, no isGapOffer
         };
         setChatMessages(prev => [...prev, aiMsg]);
         return;

@@ -27,6 +27,8 @@ import { SparePartDetailModal } from './components/modals/SparePartDetailModal';
 import { KnowledgeDetailModal } from './components/modals/KnowledgeDetailModal';
 import { DocDetailModal } from './components/modals/DocDetailModal';
 import { CaseStudyModal } from './components/modals/CaseStudyModal';
+import { ShiftHandoverModal } from './components/modals/ShiftHandoverModal';
+import { WhatIfSimulatorModal } from './components/modals/WhatIfSimulatorModal';
 
 const PATH_TO_VIEW_MAP: Record<string, AppView> = {
   '/': 'landing',
@@ -243,6 +245,8 @@ const MainAppContent: React.FC = () => {
       <KnowledgeDetailModal />
       <DocDetailModal />
       <CaseStudyModal />
+      <ShiftHandoverModal />
+      <WhatIfSimulatorModal />
     </div>
   );
 };
