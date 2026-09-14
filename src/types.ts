@@ -70,6 +70,31 @@ export interface EquipmentNode {
   silLevel?: string;
   criticality?: string;
   functionalLoc?: string;
+  datasheetSpec?: EquipmentDatasheetSpec;
+}
+
+export interface EquipmentDatasheetSpec {
+  manufacturer: string;
+  modelType: string;
+  designPressure: string;
+  operatingPressure: string;
+  designTemp: string;
+  operatingTemp: string;
+  ratedCapacity: string;
+  fluidHandled: string;
+  materialOfConstruction: string;
+  motorPower: string;
+  sealPlan: string;
+  flangeRating: string;
+  pidDocNo: string;
+  plotPlanDocNo: string;
+  interlockSetpoints: {
+    tag: string;
+    parameter: string;
+    tripValue: string;
+    votingLogic: string;
+    action: string;
+  }[];
 }
 
 export interface SparePart {

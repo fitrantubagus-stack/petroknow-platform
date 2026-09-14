@@ -33,6 +33,7 @@ export type ActiveModal =
   | 'sparepart_detail' 
   | 'knowledge_detail' 
   | 'doc_detail' 
+  | 'case_study'
   | null;
 
 interface AppContextType {

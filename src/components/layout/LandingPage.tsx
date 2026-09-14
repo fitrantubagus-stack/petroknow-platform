@@ -260,6 +260,13 @@ export const LandingPage: React.FC = () => {
                   <span>Launch Live Mission Control</span>
                   <ArrowRight className="w-4 h-4" />
                 </Link>
+                <button
+                  onClick={() => setActiveModal('case_study')}
+                  className="px-5 py-3.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-sm font-bold transition-all flex items-center gap-2 cursor-pointer shadow-md shadow-amber-500/10 hover:scale-[1.02]"
+                >
+                  <Activity className="w-4 h-4 text-amber-400" />
+                  <span>CALIBER 2026 Case Study Demo</span>
+                </button>
                 {canInstallPwa && (
                   <button
                     onClick={installPwa}

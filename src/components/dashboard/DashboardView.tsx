@@ -63,7 +63,44 @@ export const DashboardView: React.FC = () => {
             <QrCode className="w-3.5 h-3.5 text-cyan-400" />
             <span>Scan Floor Tag</span>
           </button>
+          <button
+            onClick={() => setActiveModal('case_study')}
+            className="px-3.5 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-bold flex items-center gap-1.5 transition-all shadow-md shadow-amber-500/10 cursor-pointer"
+          >
+            <Activity className="w-3.5 h-3.5 text-amber-400" />
+            <span>CALIBER 2026 Walkthrough</span>
+          </button>
         </div>
+      </div>
+
+      {/* CALIBER 2026 Innovation Challenge Highlight Banner */}
+      <div className="p-4 rounded-2xl bg-gradient-to-r from-teal-950/60 via-slate-900 to-cyan-950/40 border border-teal-800/50 shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-start gap-3.5">
+          <div className="p-3 rounded-xl bg-teal-500/20 border border-teal-500/30 text-teal-300 shrink-0">
+            <Sparkles className="w-5 h-5 text-teal-400" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="px-2 py-0.5 rounded bg-teal-500/20 text-teal-300 text-[10px] font-mono font-bold border border-teal-500/30">
+                CASE 1: MANUFACTURING KNOWLEDGE HUB
+              </span>
+              <span className="text-[11px] text-slate-400 font-medium">PT Chandra Asri Pacific Tbk Ground Truth</span>
+            </div>
+            <h3 className="text-sm font-bold text-slate-100 mt-1">
+              Live Incident Simulation: GA-1201A Hexane Pump Anomaly & Tacit Resolution
+            </h3>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Experience the 5-step operational workflow: Telemetry Alarm → P&ID Cross-Ref → Veteran Tacit Retrieval → Spare Part Reservation → $85k Saved.
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={() => setActiveModal('case_study')}
+          className="px-4 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-md shadow-teal-500/20 shrink-0 cursor-pointer"
+        >
+          <span>Launch Interactive Walkthrough</span>
+          <ArrowRight className="w-4 h-4" />
+        </button>
       </div>
 
       {/* KPI Cards Row (Computed Live from State) */}
