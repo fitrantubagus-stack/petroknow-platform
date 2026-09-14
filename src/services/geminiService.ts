@@ -37,6 +37,26 @@ export const setGeminiApiKey = (key: string) => {
   }
 };
 
+export async function validateGeminiApiKey(testKey?: string): Promise<{ valid: boolean; error?: string }> {
+  const key = testKey?.trim() || getGeminiApiKey();
+  if (!key) return { valid: false, error: 'No API key provided.' };
+  try {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${key}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: [{ parts: [{ text: 'ping' }] }] })
+    });
+    if (res.ok) {
+      return { valid: true };
+    }
+    const errData = await res.json().catch(() => ({}));
+    const msg = errData?.error?.message || `HTTP ${res.status}`;
+    return { valid: false, error: msg };
+  } catch (err: any) {
+    return { valid: false, error: err.message || 'Network error' };
+  }
+}
+
 const SYSTEM_INSTRUCTION = `You are PetroKnow AI, the official Autonomous Industrial Manufacturing Knowledge Assistant for PT Chandra Asri Pacific Tbk (Cilegon Petrochemical Complex), built for the CALIBER 2026 Innovation Challenge (Case 1: Manufacturing Knowledge Hub).
 
 CORE MANDATES:

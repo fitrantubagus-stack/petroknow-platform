@@ -767,6 +767,40 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       console.warn('Live Gemini API call bypassed or timed out, using local deterministic engine:', geminiError);
     }
 
+    // Check if query is asking for Barcode or QR Code generation
+    const isBarcodeQuery = /(barcode|qr\s*code|qr\s*tag|generate\s+code)/i.test(text);
+    if (isBarcodeQuery && !imageInfo) {
+      const fallbackBarcodes: ChatBarcodeAttachment[] = [];
+      if (/ga-1201a|pump|hexane/i.test(text)) {
+        fallbackBarcodes.push({ code: 'GA-1201A', label: 'Plant Floor QR Tag • GA-1201A (Hexane Feed Pump)', type: 'qr' });
+        fallbackBarcodes.push({ code: 'PRT-MEC-3112', label: 'Warehouse Bin Barcode • PRT-MEC-3112 (Mechanical Seal Kit)', type: 'barcode' });
+      } else if (/kc-4501|compressor/i.test(text)) {
+        fallbackBarcodes.push({ code: 'KC-4501', label: 'Plant Floor QR Tag • KC-4501 (Recycle Gas Compressor)', type: 'qr' });
+        fallbackBarcodes.push({ code: 'PRT-VLV-4501', label: 'Warehouse Bin Barcode • PRT-VLV-4501 (Suction/Discharge Valve)', type: 'barcode' });
+      } else if (/lv-6701|valve/i.test(text)) {
+        fallbackBarcodes.push({ code: 'LV-6701', label: 'Plant Floor QR Tag • LV-6701 (Separator Level Angle Valve)', type: 'qr' });
+        fallbackBarcodes.push({ code: 'PRT-POS-6701', label: 'Warehouse Bin Barcode • PRT-POS-6701 (DVC6200 Positioner)', type: 'barcode' });
+      } else if (/yd-2301|dryer/i.test(text)) {
+        fallbackBarcodes.push({ code: 'YD-2301', label: 'Plant Floor QR Tag • YD-2301 (Polymer Fluid Bed Dryer)', type: 'qr' });
+      } else {
+        fallbackBarcodes.push({ code: 'GA-1201A', label: 'Plant Floor QR Tag • GA-1201A (Hexane Feed Pump)', type: 'qr' });
+        fallbackBarcodes.push({ code: 'PRT-MEC-3112', label: 'Warehouse Bin Barcode • PRT-MEC-3112 (Mechanical Seal Kit)', type: 'barcode' });
+      }
+
+      await new Promise(res => setTimeout(res, 250));
+      const assistantMsgId = `msg-ai-${Date.now()}`;
+      const aiMsg: ChatMessage = {
+        id: assistantMsgId,
+        sender: 'assistant',
+        text: `Official plant identification tag and warehouse inventory barcode generated:\n• Scan with handheld PDA or mobile camera to jump directly to equipment telemetry.\n• Click Download to print label for field tagging.`,
+        timestamp: 'Just now',
+        confidenceStatus: 'verified',
+        barcodes: fallbackBarcodes
+      };
+      setChatMessages(prev => [...prev, aiMsg]);
+      return;
+    }
+
     // Fallback: Check for lightweight heuristic system intent (greetings / self-explanation / meta questions)
     if (!imageInfo) {
       const intent = detectAssistantIntent(text);

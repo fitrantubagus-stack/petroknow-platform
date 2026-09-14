@@ -7,8 +7,9 @@ import {
   CheckCircle2, AlertTriangle, HelpCircle, ArrowUpRight, 
   RotateCcw, Camera, Flame, Gauge, X, ShieldAlert, WifiOff,
   Zap, Clock, FileSearch, Database, Cpu, Layers, Check,
-  Download, QrCode, Barcode
+  Download, QrCode, Barcode, Key
 } from 'lucide-react';
+import { getGeminiApiKey, setGeminiApiKey, validateGeminiApiKey } from '../../services/geminiService';
 
 const ChatBarcodeCard: React.FC<{ item: ChatBarcodeAttachment }> = ({ item }) => {
   const [dataUrl, setDataUrl] = useState<string>('');
@@ -90,6 +91,10 @@ export const AiAssistantView: React.FC = () => {
   const [photoModalOpen, setPhotoModalOpen] = useState(false);
   const [photoLoading, setPhotoLoading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [apiModalOpen, setApiModalOpen] = useState(false);
+  const [customKeyInput, setCustomKeyInput] = useState('');
+  const [keyStatus, setKeyStatus] = useState<'idle' | 'testing' | 'valid' | 'invalid'>('idle');
+  const [keyErrorMsg, setKeyErrorMsg] = useState('');
 
   // 55-Second Deep Retrieval & Thinking HUD State
   const [isThinking, setIsThinking] = useState(false);
@@ -563,14 +568,31 @@ export const AiAssistantView: React.FC = () => {
           </div>
         </div>
 
-        {/* Quick Photo Ask Button */}
-        <button
-          onClick={() => setPhotoModalOpen(true)}
-          className="w-full sm:w-auto justify-center px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-teal-300 border border-teal-500/30 text-xs font-semibold flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer"
-        >
-          <Camera className="w-3.5 h-3.5 text-teal-400" />
-          <span>Ask by Photo / Gauge</span>
-        </button>
+        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0 w-full sm:w-auto">
+          {/* Gemini Key Config Button */}
+          <button
+            onClick={() => {
+              setCustomKeyInput(localStorage.getItem('petroknow_gemini_api_key') || '');
+              setKeyStatus('idle');
+              setKeyErrorMsg('');
+              setApiModalOpen(true);
+            }}
+            className="flex-1 sm:flex-initial justify-center px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-500/30 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+            title="Configure Google Gemini API Key"
+          >
+            <Key className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Gemini Key</span>
+          </button>
+
+          {/* Quick Photo Ask Button */}
+          <button
+            onClick={() => setPhotoModalOpen(true)}
+            className="flex-1 sm:flex-initial justify-center px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-teal-300 border border-teal-500/30 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+          >
+            <Camera className="w-3.5 h-3.5 text-teal-400" />
+            <span>Ask by Photo / Gauge</span>
+          </button>
+        </div>
       </div>
 
       {/* Messages Scroll Area */}
@@ -982,6 +1004,106 @@ export const AiAssistantView: React.FC = () => {
               >
                 Cancel
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Gemini API Key Configuration Modal */}
+      {apiModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in select-none">
+          <div className="max-w-md w-full p-6 rounded-2xl bg-slate-900 border border-teal-500/40 shadow-2xl space-y-4 text-slate-100">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-teal-500/20 text-teal-300">
+                  <Sparkles className="w-5 h-5 text-teal-400" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-100">Google Gemini API Configuration</h3>
+                  <p className="text-[11px] text-teal-400 font-mono">TARGET: GEMINI-3.6-FLASH</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setApiModalOpen(false)}
+                className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-slate-200 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Connect your Google AI Studio API key to enable live generative responses and autonomous reasoning. The key is securely saved only in your browser storage and never uploaded to GitHub.
+            </p>
+
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold text-slate-300">Enter API Key (AIzaSy...):</label>
+              <input 
+                type="password"
+                value={customKeyInput}
+                onChange={(e) => {
+                  setCustomKeyInput(e.target.value);
+                  setKeyStatus('idle');
+                }}
+                placeholder="AIzaSy..."
+                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-slate-100 font-mono focus:outline-none focus:border-teal-500"
+              />
+              <p className="text-[10px] text-slate-400">
+                Get a free key instantly at <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-teal-400 underline">aistudio.google.com</a>.
+              </p>
+            </div>
+
+            {keyStatus === 'testing' && (
+              <div className="p-2.5 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs flex items-center gap-2 font-mono">
+                <div className="w-3.5 h-3.5 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin shrink-0" />
+                <span>Validating key with Google endpoint...</span>
+              </div>
+            )}
+
+            {keyStatus === 'valid' && (
+              <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>API Key verified active! Gemini 3.6 Flash is connected.</span>
+              </div>
+            )}
+
+            {keyStatus === 'invalid' && (
+              <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+                <span>Failed: {keyErrorMsg || 'Invalid or revoked key.'}</span>
+              </div>
+            )}
+
+            <div className="flex gap-2.5 pt-2">
+              <button
+                onClick={async () => {
+                  setKeyStatus('testing');
+                  setKeyErrorMsg('');
+                  const res = await validateGeminiApiKey(customKeyInput);
+                  if (res.valid) {
+                    setGeminiApiKey(customKeyInput);
+                    setKeyStatus('valid');
+                    setTimeout(() => setApiModalOpen(false), 1200);
+                  } else {
+                    setKeyStatus('invalid');
+                    setKeyErrorMsg(res.error || 'Check key and permissions.');
+                  }
+                }}
+                className="flex-1 py-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 text-xs font-bold transition-colors cursor-pointer"
+              >
+                Verify & Save
+              </button>
+              {customKeyInput && (
+                <button
+                  onClick={() => {
+                    setGeminiApiKey('');
+                    setCustomKeyInput('');
+                    setKeyStatus('idle');
+                  }}
+                  className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-rose-300 border border-rose-500/30 text-xs font-semibold transition-colors cursor-pointer"
+                >
+                  Clear Key
+                </button>
+              )}
             </div>
           </div>
         </div>
