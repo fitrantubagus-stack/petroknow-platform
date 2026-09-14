@@ -117,6 +117,7 @@ interface AppContextType {
   deleteCampaign: (id: string) => void;
   computeCampaignProgress: (campaign: RetirementCampaign) => {
     progressPercent: number;
+    percent: number;
     totalTopics: number;
     capturedTopics: number;
     daysRemaining: number;
@@ -157,6 +158,50 @@ const getInitialAppView = (): AppView => {
   if (path === '/analytics') return 'analytics';
   if (path === '/contact') return 'contact';
   return 'landing';
+};
+
+export const normalizeCampaign = (c: any): RetirementCampaign => {
+  if (!c) {
+    return {
+      id: 'camp-default',
+      smeName: 'Wahyu Setiadi (EMP-1113)',
+      smeEmail: 'wahyu.setiadi@petroknow.com',
+      smeRoleTitle: 'Principal Rotating Equipment Specialist (Retiring Q4 2026)',
+      department: 'Reliability & Asset Integrity',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+      targetDepartureDate: '2026-11-30',
+      createdAt: '2026-08-01',
+      status: 'Active',
+      notes: '',
+      criticalTopics: []
+    };
+  }
+
+  const rawTopics = Array.isArray(c.criticalTopics) ? c.criticalTopics : [];
+  const normalizedTopics: CriticalTopic[] = rawTopics.map((t: any, idx: number) => ({
+    topicId: t.topicId || t.id || `topic-${idx + 1}`,
+    topicTitle: t.topicTitle || t.title || 'Knowledge Capture Topic',
+    category: t.category || 'Tacit Experience',
+    equipmentId: t.equipmentId || t.linkedEquipmentCode,
+    importance: (t.importance === 'Critical' || t.importance === 'High' || t.importance === 'Medium')
+      ? t.importance
+      : (t.priority === 'high' ? 'Critical' : 'High'),
+    notes: t.notes || ''
+  }));
+
+  return {
+    id: c.id || `camp-${Math.random().toString(36).slice(2, 7)}`,
+    smeName: c.smeName || c.targetExpertName || c.veteranName || 'Subject Matter Expert',
+    smeEmail: c.smeEmail || 'expert@petroknow.com',
+    smeRoleTitle: c.smeRoleTitle || c.targetExpertRole || c.role || 'Principal Specialist',
+    department: c.department || 'Reliability & Asset Integrity',
+    targetDepartureDate: c.targetDepartureDate || c.deadline || '2026-11-30',
+    avatar: c.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+    notes: c.notes || '',
+    createdAt: c.createdAt || '2026-08-01',
+    status: (c.status === 'Completed' || c.status === 'Archived') ? c.status : 'Active',
+    criticalTopics: normalizedTopics
+  };
 };
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -236,8 +281,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   });
 
   const [campaigns, setCampaigns] = useState<RetirementCampaign[]>(() => {
-    const saved = localStorage.getItem(`${STORAGE_KEY}_campaigns`);
-    return saved ? JSON.parse(saved) : INITIAL_RETIREMENT_CAMPAIGNS;
+    try {
+      const saved = localStorage.getItem(`${STORAGE_KEY}_campaigns`);
+      if (saved) {
+        const raw = JSON.parse(saved);
+        if (Array.isArray(raw) && raw.length > 0) {
+          return raw.map(normalizeCampaign);
+        }
+      }
+    } catch (e) {
+      console.warn('Error reading campaigns from localStorage:', e);
+    }
+    return INITIAL_RETIREMENT_CAMPAIGNS.map(normalizeCampaign);
   });
 
   const [tacitPrefill, setTacitPrefill] = useState<TacitPrefill | null>(null);
@@ -848,44 +903,72 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const computeCampaignProgress = (campaign: RetirementCampaign) => {
+    if (!campaign) {
+      return {
+        progressPercent: 0,
+        percent: 0,
+        totalTopics: 0,
+        capturedTopics: 0,
+        daysRemaining: 0,
+        isUrgent: false,
+        topicStatuses: []
+      };
+    }
+
     const today = new Date(SIMULATED_CURRENT_DATE).getTime();
-    const depDate = new Date(campaign.targetDepartureDate).getTime();
+    const targetDateStr = campaign.targetDepartureDate || (campaign as any).deadline || SIMULATED_CURRENT_DATE;
+    const depDate = new Date(targetDateStr).getTime();
     const daysRemaining = Math.max(0, Math.ceil((depDate - today) / (1000 * 60 * 60 * 24)));
-    const totalTopics = campaign.criticalTopics.length;
+    
+    const criticalTopics = Array.isArray(campaign.criticalTopics) ? campaign.criticalTopics : [];
+    const totalTopics = criticalTopics.length;
+    const smeName = (campaign.smeName || (campaign as any).targetExpertName || (campaign as any).veteranName || '').toLowerCase();
 
-    const topicStatuses = campaign.criticalTopics.map(topic => {
+    const topicStatuses = criticalTopics.map((topic, idx) => {
+      const topicTitle = (topic?.topicTitle || (topic as any)?.title || '').toLowerCase();
+      const topicEqId = topic?.equipmentId || (topic as any)?.linkedEquipmentCode;
+
       // Find matching verified knowledge entry
-      const matchingEntry = knowledgeEntries.find(k => {
-        const isVerified = k.status === 'verified';
-        if (!isVerified) return false;
+      const matchingEntry = (knowledgeEntries || []).find(k => {
+        if (!k || k.status !== 'verified') return false;
 
-        const topicLower = topic.topicTitle.toLowerCase();
-        const kTitleLower = k.title.toLowerCase();
+        const kTitleLower = (k.title || '').toLowerCase();
         const kSituationLower = (k.situation || '').toLowerCase();
-        const authorLower = k.author.toLowerCase();
-        const smeLower = campaign.smeName.toLowerCase();
+        const authorLower = (k.author || '').toLowerCase();
 
-        const matchesSme = authorLower.includes(smeLower) || smeLower.includes(authorLower);
-        const matchesEquipment = topic.equipmentId && k.linkedEquipmentIds.includes(topic.equipmentId);
-        const titleMatch = kTitleLower.includes(topicLower.slice(0, 12)) || topicLower.includes(kTitleLower.slice(0, 12));
-        const tagOrSituationMatch = k.tags.some(t => topicLower.includes(t.toLowerCase())) || kSituationLower.includes(topicLower.slice(0, 10));
+        const matchesSme = smeName ? (authorLower.includes(smeName) || smeName.includes(authorLower)) : false;
+        const matchesEquipment = topicEqId && Array.isArray(k.linkedEquipmentIds) && k.linkedEquipmentIds.includes(topicEqId);
+        const titleSnippet = topicTitle ? topicTitle.slice(0, 10) : '';
+        const titleMatch = titleSnippet ? (kTitleLower.includes(titleSnippet) || (kTitleLower && topicTitle.includes(kTitleLower.slice(0, 10)))) : false;
+        const tags = Array.isArray(k.tags) ? k.tags : [];
+        const tagOrSituationMatch = (topicTitle && tags.some(t => t && topicTitle.includes(t.toLowerCase()))) || (titleSnippet && kSituationLower.includes(titleSnippet));
 
         return (matchesSme && (matchesEquipment || titleMatch)) || (matchesEquipment && titleMatch) || (titleMatch && tagOrSituationMatch);
       });
 
+      const normalizedTopic: CriticalTopic = {
+        topicId: topic?.topicId || (topic as any)?.id || `topic-${idx + 1}`,
+        topicTitle: topic?.topicTitle || (topic as any)?.title || 'Critical Tacit Topic',
+        category: topic?.category || 'Tacit Experience',
+        equipmentId: topicEqId,
+        importance: topic?.importance || ((topic as any)?.priority === 'high' ? 'Critical' : 'High'),
+        notes: topic?.notes || ''
+      };
+
       return {
-        topic,
-        isCaptured: !!matchingEntry,
+        topic: normalizedTopic,
+        isCaptured: !!matchingEntry || (topic as any)?.status === 'captured',
         matchingEntry
       };
     });
 
     const capturedTopics = topicStatuses.filter(t => t.isCaptured).length;
-    const progressPercent = totalTopics > 0 ? Math.round((capturedTopics / totalTopics) * 100) : 0;
+    const progressPercent = totalTopics > 0 ? Math.round((capturedTopics / totalTopics) * 100) : ((campaign as any).progress ?? 0);
     const isUrgent = daysRemaining < 14 && progressPercent < 70;
 
     return {
       progressPercent,
+      percent: progressPercent,
       totalTopics,
       capturedTopics,
       daysRemaining,

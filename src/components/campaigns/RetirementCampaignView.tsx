@@ -118,7 +118,7 @@ export const RetirementCampaignView: React.FC = () => {
   };
 
   // Filter campaigns
-  const filteredCampaigns = campaigns.filter(campaign => {
+  const filteredCampaigns = (campaigns || []).filter(campaign => {
     const progress = computeCampaignProgress(campaign);
     
     // Tab filter
@@ -129,9 +129,9 @@ export const RetirementCampaignView: React.FC = () => {
     // Search query
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
-      const matchSme = campaign.smeName.toLowerCase().includes(q);
-      const matchDept = campaign.department.toLowerCase().includes(q);
-      const matchTopic = campaign.criticalTopics.some(t => t.topicTitle.toLowerCase().includes(q));
+      const matchSme = (campaign.smeName || (campaign as any).targetExpertName || '').toLowerCase().includes(q);
+      const matchDept = (campaign.department || '').toLowerCase().includes(q);
+      const matchTopic = (campaign.criticalTopics || []).some(t => (t?.topicTitle || (t as any)?.title || '').toLowerCase().includes(q));
       if (!matchSme && !matchDept && !matchTopic) return false;
     }
 
@@ -139,12 +139,12 @@ export const RetirementCampaignView: React.FC = () => {
   });
 
   // Global Campaign Metrics
-  const totalCampaigns = campaigns.length;
-  const activeCampaigns = campaigns.filter(c => c.status === 'Active');
-  const urgentCount = campaigns.filter(c => computeCampaignProgress(c).isUrgent).length;
+  const totalCampaigns = (campaigns || []).length;
+  const activeCampaigns = (campaigns || []).filter(c => c.status === 'Active');
+  const urgentCount = (campaigns || []).filter(c => computeCampaignProgress(c)?.isUrgent).length;
   
-  const totalTrackedTopics = campaigns.reduce((acc, c) => acc + c.criticalTopics.length, 0);
-  const totalCapturedTopics = campaigns.reduce((acc, c) => acc + computeCampaignProgress(c).capturedTopics, 0);
+  const totalTrackedTopics = (campaigns || []).reduce((acc, c) => acc + (c?.criticalTopics ? c.criticalTopics.length : 0), 0);
+  const totalCapturedTopics = (campaigns || []).reduce((acc, c) => acc + (computeCampaignProgress(c)?.capturedTopics ?? 0), 0);
   const globalCompletionRate = totalTrackedTopics > 0 ? Math.round((totalCapturedTopics / totalTrackedTopics) * 100) : 0;
 
   return (
@@ -346,7 +346,7 @@ export const RetirementCampaignView: React.FC = () => {
                     />
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className="text-base font-bold text-slate-100">{campaign.smeName}</h3>
+                        <h3 className="text-base font-bold text-slate-100">{campaign.smeName || (campaign as any).targetExpertName || 'Subject Matter Expert'}</h3>
                         <span className="font-mono text-[10px] font-bold text-teal-400 bg-teal-500/10 px-2 py-0.5 rounded border border-teal-500/30">
                           {campaign.id}
                         </span>
@@ -366,17 +366,17 @@ export const RetirementCampaignView: React.FC = () => {
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-slate-300 font-medium mt-0.5">{campaign.smeRoleTitle}</p>
-                      <p className="text-[11px] text-slate-400">{campaign.department} • Handover Target: {campaign.targetDepartureDate}</p>
+                      <p className="text-xs text-slate-300 font-medium mt-0.5">{campaign.smeRoleTitle || (campaign as any).targetExpertRole || 'Principal Technical Specialist'}</p>
+                      <p className="text-[11px] text-slate-400">{campaign.department || 'Engineering'} • Handover Target: {campaign.targetDepartureDate || (campaign as any).deadline || '2026-11-30'}</p>
                     </div>
                   </div>
 
                   {/* Progress Ring / Percentage */}
                   <div className="flex items-center gap-4 bg-slate-950/60 p-3 rounded-xl border border-slate-800">
                     <div className="text-right">
-                      <span className="text-xs text-slate-400">Captured Wisdom</span>
-                      <p className="font-mono text-lg font-bold text-emerald-400">
-                        {progress.capturedTopics} / {progress.totalTopics} <span className="text-xs text-slate-400 font-normal">Topics ({progress.progressPercent}%)</span>
+                      <p className="text-xs font-bold text-slate-200">{progress.capturedTopics} of {progress.totalTopics} Topics</p>
+                      <p className="text-[11px] text-slate-400">
+                        {progress.progressPercent === 100 ? 'Campaign complete' : `${progress.totalTopics - progress.capturedTopics} remaining`}
                       </p>
                     </div>
                     <div className="w-12 h-12 rounded-full border-4 border-slate-800 flex items-center justify-center relative font-mono text-xs font-bold text-slate-100">
@@ -387,7 +387,7 @@ export const RetirementCampaignView: React.FC = () => {
 
                 {/* Campaign Notes */}
                 {campaign.notes && (
-                  <p className="text-xs text-slate-300 italic py-2.5 text-slate-400">
+                  <p className="text-xs italic py-2.5 text-slate-400">
                     "{campaign.notes}"
                   </p>
                 )}
@@ -395,7 +395,7 @@ export const RetirementCampaignView: React.FC = () => {
                 {/* Critical Topics Checklist */}
                 <div className="mt-3 space-y-2">
                   <div className="flex items-center justify-between text-xs text-slate-400 font-medium px-1">
-                    <span>Critical Tacit Topics to Preserve ({campaign.criticalTopics.length})</span>
+                    <span>Critical Tacit Topics to Preserve ({(campaign.criticalTopics || []).length})</span>
                     <span className="text-[11px] font-mono">Status & Traceability</span>
                   </div>
 

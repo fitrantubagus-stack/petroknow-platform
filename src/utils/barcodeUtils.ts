@@ -1,7 +1,8 @@
 import QRCode from 'qrcode';
 import JsBarcode from 'jsbarcode';
 import jsQR from 'jsqr';
-import { BrowserMultiFormatReader } from '@zxing/library';
+import * as ZXing from '@zxing/library';
+const { BrowserMultiFormatReader } = ZXing as any;
 
 /**
  * Generates a real dataURL for an equipment QR code

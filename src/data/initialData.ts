@@ -1706,43 +1706,77 @@ export const INITIAL_ACTIVITY_FEED: ActivityItem[] = [
 export const INITIAL_RETIREMENT_CAMPAIGNS: RetirementCampaign[] = [
   {
     id: 'camp-01',
-    title: 'Rotating Equipment Tacit Knowledge Extraction Campaign',
-    targetExpertName: 'Wahyu Setiadi (EMP-1113)',
-    targetExpertRole: 'Principal Rotating Equipment Specialist (Retiring Q4 2026)',
+    smeName: 'Wahyu Setiadi (EMP-1113)',
+    smeEmail: 'wahyu.setiadi@petroknow.com',
+    smeRoleTitle: 'Principal Rotating Equipment Specialist (Retiring Q4 2026)',
     department: 'Reliability & Asset Integrity',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-    deadline: '2026-11-30',
-    progress: 78,
-    totalTopics: 18,
-    capturedTopics: 14,
+    targetDepartureDate: '2026-11-30',
+    createdAt: '2026-08-01',
+    status: 'Active',
+    notes: 'Preserve 30+ years of operational heuristics on pump cavitation, compressor vibration, and dry gas seal troubleshooting before mandatory retirement.',
     criticalTopics: [
       {
-        id: 'top-01',
-        title: 'API Plan 11 Orifice Plugging Diagnostics for Hexane Pumps',
-        priority: 'high',
-        status: 'captured',
-        linkedEquipmentCode: 'GA-1201A'
+        topicId: 'top-01',
+        topicTitle: 'API Plan 11 Orifice Plugging Diagnostics for Hexane Pumps',
+        importance: 'Critical',
+        category: 'Failure Troubleshooting',
+        equipmentId: 'GA-1201A',
+        notes: 'Detecting subtle seal flush temperature elevation before mechanical seal overheating.'
       },
       {
-        id: 'top-02',
-        title: 'Kadant Rotary Joint Alignment & Thermal Shock Avoidance',
-        priority: 'high',
-        status: 'captured',
-        linkedEquipmentCode: 'YD-2301'
+        topicId: 'top-02',
+        topicTitle: 'Kadant Rotary Joint Alignment & Thermal Shock Avoidance',
+        importance: 'Critical',
+        category: 'Maintenance Execution',
+        equipmentId: 'YD-2301',
+        notes: 'Pre-heating sequence and flexible metal hose angle alignment.'
       },
       {
-        id: 'top-03',
-        title: 'Compressor Crosshead Pin Clearance & Running In Procedure',
-        priority: 'medium',
-        status: 'captured',
-        linkedEquipmentCode: 'KC-4501'
+        topicId: 'top-03',
+        topicTitle: 'Compressor Crosshead Pin Clearance & Running In Procedure',
+        importance: 'High',
+        category: 'Maintenance Execution',
+        equipmentId: 'KC-4501',
+        notes: 'Lead wire squish test and 4-hour staggered load step-up procedure.'
       },
       {
-        id: 'top-04',
-        title: 'Cooling Tower FRP Fan Dynamic Balancing In-Situ Protocol',
-        priority: 'high',
-        status: 'captured',
-        linkedEquipmentCode: 'CT-7801'
+        topicId: 'top-04',
+        topicTitle: 'Cooling Tower FRP Fan Dynamic Balancing In-Situ Protocol',
+        importance: 'High',
+        category: 'Operating Procedure',
+        equipmentId: 'CT-7801',
+        notes: 'Strobe light angular location and trial weight vector split method.'
+      }
+    ]
+  },
+  {
+    id: 'camp-02',
+    smeName: 'Bambang Trihatmodjo (EMP-1042)',
+    smeEmail: 'bambang.t@petroknow.com',
+    smeRoleTitle: 'Lead Instrumentation & Control Engineer (Retiring Q3 2026)',
+    department: 'Process Automation & SIS',
+    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80',
+    targetDepartureDate: '2026-09-25',
+    createdAt: '2026-08-10',
+    status: 'Active',
+    notes: 'Urgent handover of Fisher Fieldvue DVC6200 positioner calibration tricks and Masoneilan severe service trim diagnostics.',
+    criticalTopics: [
+      {
+        topicId: 'top-05',
+        topicTitle: 'DVC6200 Feedback Linkage Play Diagnosis & Stiction Overcoming',
+        importance: 'Critical',
+        category: 'Failure Troubleshooting',
+        equipmentId: 'LV-6701',
+        notes: 'Resolving severe hunting in 3-phase separator interface control loops.'
+      },
+      {
+        topicId: 'top-06',
+        topicTitle: 'Triconex Safety Interlock Bypass & Proof Testing Protocol',
+        importance: 'High',
+        category: 'Safety & Compliance',
+        equipmentId: 'DC-3401A',
+        notes: 'Safe override procedure during quarterly catalyst reduction cycles.'
       }
     ]
   }

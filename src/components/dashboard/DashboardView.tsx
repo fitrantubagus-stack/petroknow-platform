@@ -382,9 +382,13 @@ export const DashboardView: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              {campaigns.slice(0, 2).map((camp) => {
+              {(campaigns || []).slice(0, 2).map((camp) => {
                 const prog = computeCampaignProgress(camp);
-                const isUrgent = prog.isUrgent;
+                const isUrgent = prog?.isUrgent || false;
+                const displayName = camp.smeName || (camp as any).targetExpertName || (camp as any).veteranName || 'Expert Handover';
+                const displayRole = camp.smeRoleTitle || (camp as any).role || (camp as any).targetExpertRole || 'Technical Specialist';
+                const daysRemaining = prog?.daysRemaining ?? 30;
+                const progressPct = prog?.progressPercent ?? prog?.percent ?? 0;
 
                 return (
                   <div
@@ -397,23 +401,23 @@ export const DashboardView: React.FC = () => {
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <p className="text-xs font-bold text-slate-200 truncate">{camp.veteranName}</p>
+                      <p className="text-xs font-bold text-slate-200 truncate">{displayName}</p>
                       <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded ${
                         isUrgent ? 'bg-rose-500/20 text-rose-300' : 'bg-teal-500/20 text-teal-300'
                       }`}>
-                        {prog.daysRemaining}d to departure
+                        {daysRemaining}d to departure
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-[11px] text-slate-400">
-                      <span>{camp.role}</span>
-                      <span className="font-mono font-semibold text-slate-300">{prog.percent}% Captured</span>
+                      <span className="truncate max-w-[160px]">{displayRole}</span>
+                      <span className="font-mono font-semibold text-slate-300">{progressPct}% Captured</span>
                     </div>
                     <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
                       <div
                         className={`h-full rounded-full transition-all duration-300 ${
                           isUrgent ? 'bg-gradient-to-r from-rose-500 to-amber-400' : 'bg-gradient-to-r from-teal-500 to-cyan-400'
                         }`}
-                        style={{ width: `${prog.percent}%` }}
+                        style={{ width: `${progressPct}%` }}
                       />
                     </div>
                   </div>

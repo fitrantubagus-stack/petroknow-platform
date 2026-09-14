@@ -2,7 +2,8 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useApp } from '../../context/AppContext';
 import { decodeBarcodeOrQrFromFile, generateQrCodeDataUrl, generateBarcodeDataUrl } from '../../utils/barcodeUtils';
 import jsQR from 'jsqr';
-import { BrowserMultiFormatReader, DecodeHintType, BarcodeFormat } from '@zxing/library';
+import * as ZXing from '@zxing/library';
+const { BrowserMultiFormatReader, DecodeHintType, BarcodeFormat } = ZXing as any;
 import { 
   QrCode, Barcode, FileText, Camera, Upload, 
   Sparkles, CheckCircle2, AlertTriangle, ArrowRight, 
