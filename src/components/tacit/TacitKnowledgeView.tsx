@@ -10,7 +10,7 @@ export const TacitKnowledgeView: React.FC = () => {
 
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState<'Tacit Wisdom' | 'Troubleshooting' | 'Maintenance'>('Tacit Wisdom');
-  const [selectedEqId, setSelectedEqId] = useState<string>('EQ-CMP-204');
+  const [selectedEqId, setSelectedEqId] = useState<string>('GA-1201A');
   const [situation, setSituation] = useState('');
   const [content, setContent] = useState('');
   const [steps, setSteps] = useState<string[]>(['']);
@@ -134,7 +134,7 @@ export const TacitKnowledgeView: React.FC = () => {
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g., Acoustic Heuristic for Compressor Plate Valve Micro-Leakage"
+              placeholder="e.g., Acoustic Heuristic for Plan 11 Orifice DP Sound or KC-4501 Valve Flutter"
               className="w-full mt-1.5 bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500"
             />
           </div>

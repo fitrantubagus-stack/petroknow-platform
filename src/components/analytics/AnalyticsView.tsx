@@ -158,6 +158,81 @@ export const AnalyticsView: React.FC = () => {
           </div>
         </div>
 
+        {/* Plant Maintenance Reliability & Failure Mode Breakdown (CALIBER Case 1 Analytics) */}
+        <div className="lg:col-span-12 p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-800">
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold text-slate-100">Equipment Reliability & Maintenance History Analytics</h3>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-bold">
+                  211 WORK ORDERS
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Root cause failure distribution, MTBF, MTTR, and OPL cross-referencing compiled from the 8 LLDPE equipment datasets.
+              </p>
+            </div>
+            <div className="flex items-center gap-4 text-xs font-mono">
+              <div className="text-right">
+                <span className="text-slate-400 text-[10px] block">Average MTBF</span>
+                <span className="text-emerald-400 font-bold">42.4 Days</span>
+              </div>
+              <div className="text-right">
+                <span className="text-slate-400 text-[10px] block">Average MTTR</span>
+                <span className="text-cyan-400 font-bold">4.2 Hours</span>
+              </div>
+              <div className="text-right">
+                <span className="text-slate-400 text-[10px] block">Downtime Prevented</span>
+                <span className="text-amber-400 font-bold">340+ Hrs</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs text-slate-200">
+              <thead className="bg-slate-950/80 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+                <tr>
+                  <th className="px-3.5 py-3">Asset Code</th>
+                  <th className="px-3.5 py-3">Equipment Name</th>
+                  <th className="px-3.5 py-3">Area</th>
+                  <th className="px-3.5 py-3">Work Orders</th>
+                  <th className="px-3.5 py-3">MTBF / MTTR</th>
+                  <th className="px-3.5 py-3">Primary Root Failure Mode</th>
+                  <th className="px-3.5 py-3">Linked OPL Reference</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/80">
+                {[
+                  { code: 'GA-1201A', name: 'Hexane Feed Pump', area: 'Area 1200', wos: 28, mtbf: '39d', mttr: '3.8h', mode: 'API Plan 11 Orifice Plugging & Mech Seal Leak', opl: 'OPL-GA-1201A-01' },
+                  { code: 'YD-2301', name: 'Pellet Dryer', area: 'Area 2300', wos: 32, mtbf: '34d', mttr: '5.1h', mode: 'Kadant Rotary Joint Steam Leak & Screen Clogging', opl: 'OPL-YD-2301-01' },
+                  { code: 'DC-3401A', name: 'Purge Column Bag Filter', area: 'Area 3400', wos: 24, mtbf: '45d', mttr: '3.2h', mode: 'Pulse Jet Solenoid Valve Failure & High dP', opl: 'OPL-DC-3401A-01' },
+                  { code: 'KC-4501', name: 'Cycle Gas Compressor', area: 'Area 4500', wos: 29, mtbf: '38d', mttr: '6.4h', mode: 'Plate Valve Flutter & Crosshead Clearance', opl: 'OPL-KC-4501-02' },
+                  { code: 'EA-5601', name: 'Reaction Loop Heat Exchanger', area: 'Area 5600', wos: 21, mtbf: '52d', mttr: '4.6h', mode: 'Tube Bundle Scale Bio-Fouling & Gasket Leakage', opl: 'OPL-EA-5601-01' },
+                  { code: 'LV-6701', name: 'Reactor Level Control Valve', area: 'Area 6700', wos: 27, mtbf: '41d', mttr: '3.5h', mode: 'Pneumatic Diaphragm Rupture & Ceramic Trim Erosion', opl: 'OPL-LV-6701-01' },
+                  { code: 'CT-7801', name: 'Cooling Tower Induced Draft Fan', area: 'Area 7800', wos: 23, mtbf: '48d', mttr: '4.1h', mode: 'FRP Blade Silt Erosion & Gearbox Oil Degradation', opl: 'OPL-CT-7801-03' },
+                  { code: 'FA-8901', name: 'Flare Knockout Drum', area: 'Area 8900', wos: 27, mtbf: '42d', mttr: '3.1h', mode: 'Demister Pad High dP & Level Transmitter Drift', opl: 'OPL-FA-8901-01' },
+                ].map((item, idx) => (
+                  <tr key={idx} className="hover:bg-slate-800/40 transition-colors">
+                    <td className="px-3.5 py-3 font-mono text-teal-400 font-bold">{item.code}</td>
+                    <td className="px-3.5 py-3 font-semibold text-slate-100">{item.name}</td>
+                    <td className="px-3.5 py-3 text-slate-400">{item.area}</td>
+                    <td className="px-3.5 py-3 font-mono text-slate-200">{item.wos} WOs</td>
+                    <td className="px-3.5 py-3 font-mono text-xs">
+                      <span className="text-emerald-400 font-semibold">{item.mtbf}</span> / <span className="text-cyan-400 font-semibold">{item.mttr}</span>
+                    </td>
+                    <td className="px-3.5 py-3 text-slate-300 text-[11px]">{item.mode}</td>
+                    <td className="px-3.5 py-3">
+                      <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded bg-teal-500/10 text-teal-300 border border-teal-500/30">
+                        {item.opl}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
         {/* Unresolved Knowledge Gaps Table (12 cols) */}
         <div className="lg:col-span-12 p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
           <div className="flex items-center justify-between pb-2 border-b border-slate-800">
@@ -192,18 +267,18 @@ export const AnalyticsView: React.FC = () => {
                 {knowledgeGaps.map((gap) => (
                   <tr key={gap.id} className="hover:bg-slate-800/40 transition-colors">
                     <td className="px-4 py-3.5 font-mono text-teal-400 font-bold">{gap.id}</td>
-                    <td className="px-4 py-3.5 font-semibold text-slate-100">{gap.query}</td>
+                    <td className="px-4 py-3.5 font-semibold text-slate-100">{gap.question}</td>
                     <td className="px-4 py-3.5">
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                        gap.priority === 'High' 
+                        gap.impact === 'High' 
                           ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' 
                           : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
                       }`}>
-                        {gap.priority}
+                        {gap.impact}
                       </span>
                     </td>
-                    <td className="px-4 py-3.5 text-slate-400 font-mono">{gap.dateLogged}</td>
-                    <td className="px-4 py-3.5 font-mono text-slate-300">{gap.frequency} asks</td>
+                    <td className="px-4 py-3.5 text-slate-400 font-mono">{gap.askedDate}</td>
+                    <td className="px-4 py-3.5 font-mono text-slate-300">{gap.frequency || 1} asks</td>
                     <td className="px-4 py-3.5">
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
                         {gap.status}

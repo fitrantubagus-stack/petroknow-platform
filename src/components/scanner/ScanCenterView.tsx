@@ -51,7 +51,7 @@ export const ScanCenterView: React.FC = () => {
   const [extractedSituation, setExtractedSituation] = useState('');
   const [extractedContent, setExtractedContent] = useState('');
   const [extractedSteps, setExtractedSteps] = useState<string[]>([]);
-  const [selectedEqId, setSelectedEqId] = useState<string>('EQ-CMP-204');
+  const [selectedEqId, setSelectedEqId] = useState<string>('GA-1201A');
   const [ocrSuccessMsg, setOcrSuccessMsg] = useState<string | null>(null);
 
   // Audio feedback on successful QR / barcode decode
@@ -374,11 +374,11 @@ export const ScanCenterView: React.FC = () => {
           setExtractedTitle(`Standard Operating Procedure: ${file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ')}`);
           setExtractedSituation('Field maintenance and inspection protocol extracted from scanned technical documentation.');
           setExtractedSteps([
-            'Verify line isolation and execute LOTO (Lockout/Tagout) protocol on primary breaker.',
-            'Depressurize chamber to atmospheric pressure through bleed valve HV-204B.',
-            'Perform thermographic inspection and check seal face tolerances with feeler gauge (limit < 0.05 mm).'
+            'Verify line isolation and execute LOTO (Lockout/Tagout) protocol on primary MCC breaker.',
+            'Depressurize chamber / flush line to battery limit closed drain through isolation valve XV-1201.',
+            'Perform thermographic inspection and check seal face tolerances with dial gauge (radial runout < 0.05 mm).'
           ]);
-          setExtractedContent(`DOCUMENT EXCERPT:\n- Technical reference standard: API-618\n- Inspection interval: 6 months or 4,000 running hours\n- Hazard classification: Class 1 Div 2\n- Mandatory PPE: Fire-resistant coveralls, impact goggles, H2S personal monitor.`);
+          setExtractedContent(`DOCUMENT EXCERPT:\n- Technical reference standard: API 610 11th Ed / API 682 4th Ed\n- Inspection interval: 6 months or 4,000 running hours\n- Plant Area: Area 1200 Feed Purification / Area 4500 Reaction System\n- Mandatory PPE: Fire-resistant coveralls, chemical splash goggles, hydrocarbon multi-gas monitor.`);
         }, 800);
       }, 900);
     }, 700);

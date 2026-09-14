@@ -114,6 +114,7 @@ export interface KnowledgeGap {
   assignedTo?: string;
   resolvedEntryId?: string;
   impact: 'High' | 'Medium' | 'Low';
+  frequency?: number;
 }
 
 export interface ActivityItem {

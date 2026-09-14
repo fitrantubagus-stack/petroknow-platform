@@ -14,11 +14,13 @@ export const DocumentLibraryView: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
 
-  const categories = ['ALL', 'SOP', 'Emergency', 'Maintenance', 'Process', 'Tacit', 'Troubleshooting'];
+  const categories = ['ALL', 'SOP', 'Maintenance Guide', 'Troubleshooting', 'Tacit Wisdom', 'Emergency', 'Safety'];
 
   // Filtered knowledge entries
   const filteredEntries = knowledgeEntries.filter(entry => {
-    const matchesCat = selectedCategory === 'ALL' || entry.category === selectedCategory;
+    const matchesCat = selectedCategory === 'ALL' || 
+      entry.category.toLowerCase().includes(selectedCategory.toLowerCase()) ||
+      selectedCategory.toLowerCase().includes(entry.category.toLowerCase());
     const matchesSearch = !searchQuery.trim() || 
       entry.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       entry.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
